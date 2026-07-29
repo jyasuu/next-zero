@@ -24,25 +24,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Shield } from "lucide-react"
-import { mockRoles, allPermissions, type Role } from "@/lib/constants"
+import { Plus, Shield, ChevronDown, ChevronRight } from "lucide-react"
+import { mockRoles, permissionDomains, type Role } from "@/lib/constants"
+import type { Policy } from "@/lib/acl"
+
+function actionsToPolicy(actions: string[]): Policy {
+  if (actions.length === 0) return { Version: "1", Statement: [] }
+  return {
+    Version: "1",
+    Statement: [{ Effect: "Allow", Action: actions }],
+  }
+}
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>(mockRoles)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteConfirmRole, setDeleteConfirmRole] = useState<Role | null>(null)
+  const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set(permissionDomains.map((d) => d.domain)))
+
+  const toggleDomain = (domain: string) => {
+    setExpandedDomains((prev) => {
+      const next = new Set(prev)
+      if (next.has(domain)) next.delete(domain)
+      else next.add(domain)
+      return next
+    })
+  }
+
+  const selectedActions = editingRole
+    ? editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? editingRole.permissions
+    : []
+
+  const isSelected = (action: string) => {
+    return selectedActions.some((a) => a === action || a === action.split(":")[1])
+  }
 
   const handleSave = () => {
     if (!editingRole) return
+    const actions = editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? []
+    const updatedRole = {
+      ...editingRole,
+      policies: [actionsToPolicy(actions)],
+      permissions: actions,
+    }
     setRoles((prev) => {
       const existing = prev.findIndex((r) => r.id === editingRole.id)
       if (existing >= 0) {
         const updated = [...prev]
-        updated[existing] = editingRole
+        updated[existing] = updatedRole
         return updated
       }
-      return [...prev, { ...editingRole, id: String(Date.now()), userCount: 0 }]
+      return [...prev, { ...updatedRole, id: String(Date.now()), userCount: 0 }]
     })
     setDialogOpen(false)
     setEditingRole(null)
@@ -53,13 +86,15 @@ export default function RolesPage() {
     setDeleteConfirmRole(null)
   }, [])
 
-  const togglePermission = (perm: string) => {
+  const toggleAction = (action: string) => {
     if (!editingRole) return
+    const current = editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? []
+    const next = current.includes(action)
+      ? current.filter((a) => a !== action)
+      : [...current, action]
     setEditingRole({
       ...editingRole,
-      permissions: editingRole.permissions.includes(perm)
-        ? editingRole.permissions.filter((p) => p !== perm)
-        : [...editingRole.permissions, perm],
+      policies: [actionsToPolicy(next)],
     })
   }
 
@@ -72,12 +107,12 @@ export default function RolesPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingRole({ id: "", name: "", description: "", permissions: [], userCount: 0 })}>
+            <Button onClick={() => setEditingRole({ id: "", name: "", description: "", permissions: [], policies: [], userCount: 0 })}>
               <Plus className="mr-2 h-4 w-4" />
               Create Role
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingRole?.id ? "Edit Role" : "Create Role"}</DialogTitle>
               <DialogDescription>Define the role name, description, and permissions.</DialogDescription>
@@ -102,20 +137,49 @@ export default function RolesPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Permissions</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {allPermissions.map((perm) => (
-                      <div key={perm} className="flex items-center gap-2">
-                        <Checkbox
-                          id={`perm-${perm}`}
-                          checked={editingRole.permissions.includes(perm)}
-                          onCheckedChange={() => togglePermission(perm)}
-                        />
-                        <Label htmlFor={`perm-${perm}`} className="text-sm capitalize">
-                          {perm.replace(/_/g, " ")}
-                        </Label>
-                      </div>
-                    ))}
+                  <div className="rounded-md border p-3 space-y-1">
+                    {permissionDomains.map((group) => {
+                      const domainSelectedCount = group.actions.filter(isSelected).length
+                      const isExpanded = expandedDomains.has(group.domain)
+                      return (
+                        <div key={group.domain}>
+                          <button
+                            type="button"
+                            onClick={() => toggleDomain(group.domain)}
+                            className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-sm font-medium hover:bg-accent"
+                          >
+                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            {group.label}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {domainSelectedCount}/{group.actions.length}
+                            </span>
+                          </button>
+                          {isExpanded && (
+                            <div className="ml-2 grid grid-cols-2 gap-1 py-1 pl-4 border-l">
+                              {group.actions.map((action) => (
+                                <div key={action} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`perm-${action}`}
+                                    checked={isSelected(action)}
+                                    onCheckedChange={() => toggleAction(action)}
+                                  />
+                                  <Label htmlFor={`perm-${action}`} className="text-sm">
+                                    {action.split(":")[1]}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Policy Preview</Label>
+                  <pre className="rounded-md bg-muted p-3 text-xs overflow-x-auto">
+                    {JSON.stringify(actionsToPolicy(editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? []), null, 2)}
+                  </pre>
                 </div>
               </div>
             )}
@@ -139,46 +203,54 @@ export default function RolesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {roles.map((role) => (
-                <TableRow key={role.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{role.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{role.description}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {role.permissions.map((perm) => (
-                        <Badge key={perm} variant="secondary" className="text-xs">
-                          {perm.replace(/_/g, " ")}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>{role.userCount}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setEditingRole(role); setDialogOpen(true) }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive"
-                        onClick={() => setDeleteConfirmRole(role)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {roles.map((role) => {
+                const actions = role.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? role.permissions
+                return (
+                  <TableRow key={role.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{role.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{role.description}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {actions.slice(0, 4).map((perm) => (
+                          <Badge key={perm} variant="secondary" className="text-xs">
+                            {perm.includes(":") ? perm.split(":")[1] : perm}
+                          </Badge>
+                        ))}
+                        {actions.length > 4 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{actions.length - 4}
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>{role.userCount}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setEditingRole(role); setDialogOpen(true) }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive"
+                          onClick={() => setDeleteConfirmRole(role)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>

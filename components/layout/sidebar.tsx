@@ -19,28 +19,31 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { ability } from "@/lib/acl"
+import { mainNavItems, settingsNavItems, mockRoles } from "@/lib/constants"
 import { useUIStore } from "@/stores/ui-store"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
-const navItems = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Users", href: "/users", icon: Users },
-  { title: "Audit Log", href: "/audit-log", icon: ScrollText },
-  { title: "API Keys", href: "/api-keys", icon: Key },
-  { title: "Reports", href: "/reports", icon: BarChart3 },
-  { title: "Roles", href: "/roles", icon: Shield },
-  { title: "System Health", href: "/system-health", icon: Activity },
-]
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  LayoutDashboard,
+  Users,
+  ScrollText,
+  Key,
+  BarChart3,
+  Shield,
+  Activity,
+  Settings,
+  User,
+  Bell,
+}
 
-const bottomNavItems = [
-  { title: "Settings", href: "/settings", icon: Settings },
-  { title: "Profile", href: "/profile", icon: User },
-  { title: "Notifications", href: "/notifications", icon: Bell },
-]
+interface SidebarProps {
+  userRole?: string
+}
 
-export function Sidebar() {
+export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
   const isMobile = useMediaQuery("(max-width: 767px)")
   const { sidebarCollapsed, sidebarCollapsedChanged } = useUIStore()
@@ -50,6 +53,12 @@ export function Sidebar() {
       sidebarCollapsedChanged(true)
     }
   }, [isMobile])
+
+  const role = mockRoles.find((r) => r.name === userRole)
+  const { can } = ability(role ?? { permissions: [] })
+
+  const visibleMain = mainNavItems.filter((item) => !item.requiredAction || can(item.requiredAction))
+  const visibleSettings = settingsNavItems.filter((item) => !item.requiredAction || can(item.requiredAction))
 
   return (
     <aside
@@ -78,8 +87,9 @@ export function Sidebar() {
 
       <div className="flex-1 overflow-y-auto py-2">
         <nav className="flex flex-col gap-1 px-2">
-          {navItems.map((item) => {
-            const Icon = item.icon
+          {visibleMain.map((item) => {
+            const Icon = iconMap[item.icon]
+            if (!Icon) return null
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
 
             if (sidebarCollapsed) {
@@ -127,8 +137,9 @@ export function Sidebar() {
         </div>
 
         <nav className="flex flex-col gap-1 px-2">
-          {bottomNavItems.map((item) => {
-            const Icon = item.icon
+          {visibleSettings.map((item) => {
+            const Icon = iconMap[item.icon]
+            if (!Icon) return null
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
 
             if (sidebarCollapsed) {

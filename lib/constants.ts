@@ -1,24 +1,26 @@
+import type { Policy } from "@/lib/acl"
+
 export type NavItem = {
   title: string
   href: string
   icon: string
-  roles?: string[]
+  requiredAction?: string
 }
 
 export const mainNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
-  { title: "Users", href: "/users", icon: "Users" },
-  { title: "Audit Log", href: "/audit-log", icon: "ScrollText" },
-  { title: "API Keys", href: "/api-keys", icon: "Key" },
-  { title: "Reports", href: "/reports", icon: "BarChart3" },
-  { title: "Roles", href: "/roles", icon: "Shield" },
-  { title: "System Health", href: "/system-health", icon: "Activity" },
+  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", requiredAction: "dashboard:Read" },
+  { title: "Users", href: "/users", icon: "Users", requiredAction: "users:Read" },
+  { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read" },
+  { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read" },
+  { title: "Reports", href: "/reports", icon: "BarChart3", requiredAction: "reports:Read" },
+  { title: "Roles", href: "/roles", icon: "Shield", requiredAction: "roles:Read" },
+  { title: "System Health", href: "/system-health", icon: "Activity", requiredAction: "system:Read" },
 ]
 
 export const settingsNavItems: NavItem[] = [
-  { title: "Settings", href: "/settings", icon: "Settings" },
+  { title: "Settings", href: "/settings", icon: "Settings", requiredAction: "settings:Read" },
   { title: "Profile", href: "/profile", icon: "User" },
-  { title: "Notifications", href: "/notifications", icon: "Bell" },
+  { title: "Notifications", href: "/notifications", icon: "Bell", requiredAction: "notifications:Read" },
 ]
 
 export interface User {
@@ -64,6 +66,7 @@ export interface Role {
   name: string
   description: string
   permissions: string[]
+  policies?: Policy[]
   userCount: number
 }
 
@@ -149,6 +152,54 @@ export const mockIncidents: Incident[] = [
   { id: "3", title: "SSL certificate renewal failure", status: "resolved", severity: "minor", createdAt: "2024-11-25T08:00:00Z", resolvedAt: "2024-11-25T09:15:00Z" },
   { id: "4", title: "Queue worker stuck on job processing", status: "investigating", severity: "major", createdAt: "2024-12-01T22:00:00Z" },
   { id: "5", title: "Memory usage spike on server-03", status: "monitoring", severity: "minor", createdAt: "2024-12-02T06:00:00Z" },
+]
+
+export const permissionDomains = [
+  {
+    domain: "dashboard",
+    label: "Dashboard",
+    actions: ["dashboard:Read"],
+  },
+  {
+    domain: "users",
+    label: "Users",
+    actions: ["users:Read", "users:Write", "users:Create", "users:Delete", "users:Manage"],
+  },
+  {
+    domain: "roles",
+    label: "Roles",
+    actions: ["roles:Read", "roles:Manage"],
+  },
+  {
+    domain: "audit",
+    label: "Audit Log",
+    actions: ["audit:Read"],
+  },
+  {
+    domain: "api-keys",
+    label: "API Keys",
+    actions: ["api-keys:Read", "api-keys:Manage"],
+  },
+  {
+    domain: "reports",
+    label: "Reports",
+    actions: ["reports:Read", "reports:Export"],
+  },
+  {
+    domain: "settings",
+    label: "Settings",
+    actions: ["settings:Read"],
+  },
+  {
+    domain: "notifications",
+    label: "Notifications",
+    actions: ["notifications:Read"],
+  },
+  {
+    domain: "system",
+    label: "System Health",
+    actions: ["system:Read"],
+  },
 ]
 
 export const allPermissions = [
