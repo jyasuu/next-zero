@@ -1,0 +1,156 @@
+{
+  "common": {
+    "appName": "Enterprise App",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "noResults": "No results found",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "auditLog": "Audit Log",
+    "apiKeys": "API Keys",
+    "reports": "Reports",
+    "roles": "Roles",
+    "systemHealth": "System Health",
+    "settings": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signInWithGitHub": "Sign in with GitHub",
+    "signInWithKeycloak": "Sign in with Keycloak",
+    "sessionExpired": "Your session has expired. Please sign in again."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "revenue": "Revenue",
+    "requests": "Requests",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View all"
+  },
+  "users": {
+    "title": "Users",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "userDetails": "User Details",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "createdAt": "Created At",
+    "active": "Active",
+    "inactive": "Inactive",
+    "bulkActions": "Bulk Actions",
+    "confirmDelete": "Are you sure you want to delete this user?"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "appearance": "Appearance",
+    "notifications": "Notifications",
+    "siteName": "Site Name",
+    "language": "Language",
+    "timezone": "Timezone",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "clearAll": "Clear all",
+    "preferences": "Preferences",
+    "types": {
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error",
+      "success": "Success"
+    }
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "exportCSV": "Export CSV",
+    "user": "User",
+    "action": "Action",
+    "resource": "Resource",
+    "details": "Details",
+    "ip": "IP Address",
+    "timestamp": "Timestamp"
+  },
+  "apiKeys": {
+    "title": "API Keys",
+    "generateKey": "Generate API Key",
+    "revokeKey": "Revoke Key",
+    "name": "Name",
+    "scope": "Scope",
+    "createdAt": "Created At",
+    "lastUsed": "Last Used",
+    "status": "Status",
+    "keyValue": "API Key",
+    "copyKey": "Copy to clipboard",
+    "keyGenerated": "Your API key has been generated. Make sure to copy it now - you won't be able to see it again."
+  },
+  "reports": {
+    "title": "Reports & Analytics",
+    "dateRange": "Date Range",
+    "exportPDF": "Export PDF",
+    "exportCSV": "Export CSV",
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "apiRequests": "API Requests",
+    "avgResponseTime": "Avg Response Time"
+  },
+  "roles": {
+    "title": "Role Management",
+    "createRole": "Create Role",
+    "editRole": "Edit Role",
+    "deleteRole": "Delete Role",
+    "name": "Name",
+    "description": "Description",
+    "permissions": "Permissions",
+    "users": "Users",
+    "confirmDelete": "Are you sure you want to delete this role?"
+  },
+  "systemHealth": {
+    "title": "System Health",
+    "overallStatus": "Overall Status",
+    "services": "Services",
+    "incidents": "Incidents",
+    "resourceUsage": "Resource Usage",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "storage": "Storage",
+    "uptime": "Uptime",
+    "responseTime": "Response Time",
+    "healthy": "Healthy",
+    "degraded": "Degraded",
+    "down": "Down"
+  }
+}
