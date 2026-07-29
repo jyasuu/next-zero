@@ -1,0 +1,3 @@
+interface:
+  display_name: "Git Push via Docker"
+  short_description: "Push git changes via Docker when the host git binary is a broken Rust wrapper"
