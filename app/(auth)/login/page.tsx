@@ -8,7 +8,10 @@ export default async function LoginPage() {
   return (
     <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
       <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">
+          EA
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight">Enterprise App</h1>
         <p className="text-sm text-muted-foreground">Sign in to your account</p>
       </div>
       <div className="grid gap-4">

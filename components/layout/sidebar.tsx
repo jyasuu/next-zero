@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect } from "react"
 import {
   LayoutDashboard,
   Users,
@@ -19,6 +20,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { useUIStore } from "@/stores/ui-store"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -40,7 +42,14 @@ const bottomNavItems = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const isMobile = useMediaQuery("(max-width: 767px)")
   const { sidebarCollapsed, sidebarCollapsedChanged } = useUIStore()
+
+  useEffect(() => {
+    if (isMobile && !sidebarCollapsed) {
+      sidebarCollapsedChanged(true)
+    }
+  }, [isMobile])
 
   return (
     <aside
@@ -79,6 +88,7 @@ export function Sidebar() {
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
+                      aria-label={item.title}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                         isActive
@@ -127,6 +137,7 @@ export function Sidebar() {
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
+                      aria-label={item.title}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                         isActive

@@ -93,10 +93,17 @@ export default function AuditLogPage() {
     initialState: { pagination: { pageSize: 10 } },
   })
 
+  const escapeCSV = (val: string) => {
+    if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+      return `"${val.replace(/"/g, '""')}"`
+    }
+    return val
+  }
+
   const exportCSV = () => {
     const headers = ["User", "Action", "Resource", "Details", "IP", "Timestamp"]
     const rows = filteredData.map((d) => [d.user, d.action, d.resource, d.details, d.ip, d.timestamp])
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n")
+    const csv = [headers.join(","), ...rows.map((r) => r.map(escapeCSV).join(","))].join("\n")
     const blob = new Blob([csv], { type: "text/csv" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
