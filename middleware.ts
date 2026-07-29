@@ -1,21 +1,20 @@
 import createMiddleware from "next-intl/middleware"
-import { auth } from "@/lib/auth"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-const intlMiddleware = createMiddleware({
-  locales: ["en"],
-  defaultLocale: "en",
-  localeDetection: false,
-})
-
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/api")) {
-    return
+  if (pathname.startsWith("/login") || pathname.startsWith("/api") || pathname.startsWith("/_next")) {
+    return NextResponse.next()
   }
 
-  return intlMiddleware(req)
-})
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/dashboard", req.url))
+  }
+
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [
