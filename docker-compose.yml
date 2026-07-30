@@ -13,7 +13,7 @@ services:
     volumes:
       - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/realms/next-zero"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080; echo -e 'GET /realms/next-zero HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3; head -1 <&3 | grep -q 200"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -22,11 +22,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       AUTH_SECRET: dev-secret-not-for-production
-      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_URL: http://app:3000
       AUTH_PROVIDER: keycloak
       KEYCLOAK_CLIENT_ID: next-zero-app
       KEYCLOAK_CLIENT_SECRET: ""

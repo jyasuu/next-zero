@@ -1,0 +1,9 @@
+.next
+node_modules
+.git
+*.md
+.gitignore
+.env
+.env.local
+.env.production
+.next
