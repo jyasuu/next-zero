@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -26,6 +27,7 @@ import { Copy, Key, Plus, Trash2 } from "lucide-react"
 import { mockApiKeys, type ApiKey } from "@/lib/constants"
 
 export default function APIKeysPage() {
+  const t = useTranslations("apiKeys")
   const [keys, setKeys] = useState<ApiKey[]>(mockApiKeys)
   const [showNewKeyDialog, setShowNewKeyDialog] = useState(false)
   const [newKeyName, setNewKeyName] = useState("")
@@ -55,50 +57,59 @@ export default function APIKeysPage() {
     navigator.clipboard.writeText(text)
   }
 
+  const scopeLabel = (scope: string) => {
+    switch (scope) {
+      case "read": return t("scopeRead")
+      case "read, write": return t("scopeReadWrite")
+      case "read, write, delete": return t("scopeFull")
+      default: return scope
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">API Keys</h1>
-          <p className="text-muted-foreground">Manage API keys for programmatic access</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
         <Dialog open={showNewKeyDialog} onOpenChange={setShowNewKeyDialog}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Generate API Key
+              {t("generateKey")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Generate API Key</DialogTitle>
+              <DialogTitle>{t("generateKeyTitle")}</DialogTitle>
               <DialogDescription>
-                Create a new API key for external integrations.
+                {t("generateKeyDesc")}
               </DialogDescription>
             </DialogHeader>
             {generatedKey ? (
               <div className="space-y-4">
                 <div className="rounded-md bg-muted p-4">
-                  <p className="text-sm font-medium">Your API Key</p>
+                  <p className="text-sm font-medium">{t("keyValue")}</p>
                   <p className="mt-1 break-all font-mono text-sm">{generatedKey}</p>
                   <p className="mt-2 text-xs text-amber-600">
-                    Make sure to copy this key now. You won&apos;t be able to see it again.
+                    {t("keyGenerated")}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={() => copyToClipboard(generatedKey)}>
                     <Copy className="mr-2 h-4 w-4" />
-                    Copy to Clipboard
+                    {t("copyKey")}
                   </Button>
                   <Button variant="outline" onClick={() => { setGeneratedKey(null); setShowNewKeyDialog(false) }}>
-                    Done
+                    {t("done")}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="keyName">Key Name</Label>
+                  <Label htmlFor="keyName">{t("keyName")}</Label>
                   <Input
                     id="keyName"
                     placeholder="e.g., Production API"
@@ -107,21 +118,21 @@ export default function APIKeysPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="keyScope">Scope</Label>
+                  <Label htmlFor="keyScope">{t("scope")}</Label>
                   <Select value={newKeyScope} onValueChange={setNewKeyScope}>
                     <SelectTrigger id="keyScope">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="read">Read only</SelectItem>
-                      <SelectItem value="read, write">Read & Write</SelectItem>
-                      <SelectItem value="read, write, delete">Full Access</SelectItem>
+                      <SelectItem value="read">{t("scopeRead")}</SelectItem>
+                      <SelectItem value="read, write">{t("scopeReadWrite")}</SelectItem>
+                      <SelectItem value="read, write, delete">{t("scopeFull")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <DialogFooter>
                   <Button onClick={generateKey} disabled={!newKeyName}>
-                    Generate Key
+                    {t("generate")}
                   </Button>
                 </DialogFooter>
               </div>
@@ -132,7 +143,7 @@ export default function APIKeysPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Active API Keys</CardTitle>
+          <CardTitle>{t("activeKeys")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y">
@@ -143,14 +154,14 @@ export default function APIKeysPage() {
                   <div>
                     <p className="text-sm font-medium">{key.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Scope: {key.scope} | Created: {key.createdAt}
-                      {key.lastUsed ? ` | Last used: ${key.lastUsed}` : " | Never used"}
+                      {t("scope")}: {scopeLabel(key.scope)} | {t("createdAt")}: {key.createdAt}
+                      {key.lastUsed ? ` | ${t("lastUsed")}: ${key.lastUsed}` : ` | ${t("neverUsed")}`}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={key.active ? "success" : "destructive"}>
-                    {key.active ? "Active" : "Revoked"}
+                    {key.active ? t("active") : t("revoked")}
                   </Badge>
                   <Button
                     variant="ghost"

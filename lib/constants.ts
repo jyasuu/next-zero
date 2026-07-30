@@ -5,22 +5,23 @@ export type NavItem = {
   href: string
   icon: string
   requiredAction?: string
+  i18nKey: string
 }
 
 export const mainNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", requiredAction: "dashboard:Read" },
-  { title: "Users", href: "/users", icon: "Users", requiredAction: "users:Read" },
-  { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read" },
-  { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read" },
-  { title: "Reports", href: "/reports", icon: "BarChart3", requiredAction: "reports:Read" },
-  { title: "Roles", href: "/roles", icon: "Shield", requiredAction: "roles:Read" },
-  { title: "System Health", href: "/system-health", icon: "Activity", requiredAction: "system:Read" },
+  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", requiredAction: "dashboard:Read", i18nKey: "nav.dashboard" },
+  { title: "Users", href: "/users", icon: "Users", requiredAction: "users:Read", i18nKey: "nav.users" },
+  { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read", i18nKey: "nav.auditLog" },
+  { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read", i18nKey: "nav.apiKeys" },
+  { title: "Reports", href: "/reports", icon: "BarChart3", requiredAction: "reports:Read", i18nKey: "nav.reports" },
+  { title: "Roles", href: "/roles", icon: "Shield", requiredAction: "roles:Read", i18nKey: "nav.roles" },
+  { title: "System Health", href: "/system-health", icon: "Activity", requiredAction: "system:Read", i18nKey: "nav.systemHealth" },
 ]
 
 export const settingsNavItems: NavItem[] = [
-  { title: "Settings", href: "/settings", icon: "Settings", requiredAction: "settings:Read" },
-  { title: "Profile", href: "/profile", icon: "User" },
-  { title: "Notifications", href: "/notifications", icon: "Bell", requiredAction: "notifications:Read" },
+  { title: "Settings", href: "/settings", icon: "Settings", requiredAction: "settings:Read", i18nKey: "nav.settings" },
+  { title: "Profile", href: "/profile", icon: "User", i18nKey: "nav.profile" },
+  { title: "Notifications", href: "/notifications", icon: "Bell", requiredAction: "notifications:Read", i18nKey: "nav.notifications" },
 ]
 
 export interface User {

@@ -2,8 +2,10 @@
 
 import { Bell, Search } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { LocaleSwitcher } from "@/components/layout/locale-switcher"
 import { UserNav } from "@/components/layout/user-nav"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,6 +19,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ user }: TopbarProps) {
+  const t = useTranslations()
+
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:px-6">
       <div className="flex flex-1 items-center gap-4">
@@ -24,14 +28,15 @@ export function Topbar({ user }: TopbarProps) {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search..."
+            placeholder={t("topbar.search")}
             className="w-full pl-8"
           />
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <LocaleSwitcher />
         <ThemeToggle />
-        <Button variant="ghost" size="icon" asChild aria-label="Notifications">
+        <Button variant="ghost" size="icon" asChild aria-label={t("nav.notifications")}>
           <Link href="/notifications">
             <Bell className="h-5 w-5" />
           </Link>

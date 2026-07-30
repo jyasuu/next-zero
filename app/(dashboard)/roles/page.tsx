@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,6 +38,7 @@ function actionsToPolicy(actions: string[]): Policy {
 }
 
 export default function RolesPage() {
+  const t = useTranslations("roles")
   const [roles, setRoles] = useState<Role[]>(mockRoles)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -102,25 +104,25 @@ export default function RolesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Role Management</h1>
-          <p className="text-muted-foreground">Define roles and permissions</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditingRole({ id: "", name: "", description: "", permissions: [], policies: [], userCount: 0 })}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Role
+              {t("createRole")}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingRole?.id ? "Edit Role" : "Create Role"}</DialogTitle>
-              <DialogDescription>Define the role name, description, and permissions.</DialogDescription>
+              <DialogTitle>{editingRole?.id ? t("editRole") : t("createRole")}</DialogTitle>
+              <DialogDescription>{t("description")}</DialogDescription>
             </DialogHeader>
             {editingRole && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="roleName">Role Name</Label>
+                  <Label htmlFor="roleName">{t("roleName")}</Label>
                   <Input
                     id="roleName"
                     value={editingRole.name}
@@ -128,7 +130,7 @@ export default function RolesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="roleDesc">Description</Label>
+                  <Label htmlFor="roleDesc">{t("roleDesc")}</Label>
                   <Input
                     id="roleDesc"
                     value={editingRole.description}
@@ -136,7 +138,7 @@ export default function RolesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Permissions</Label>
+                  <Label>{t("permissions")}</Label>
                   <div className="rounded-md border p-3 space-y-1">
                     {permissionDomains.map((group) => {
                       const domainSelectedCount = group.actions.filter(isSelected).length
@@ -176,7 +178,7 @@ export default function RolesPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Policy Preview</Label>
+                  <Label className="text-xs text-muted-foreground">{t("policyPreview")}</Label>
                   <pre className="rounded-md bg-muted p-3 text-xs overflow-x-auto">
                     {JSON.stringify(actionsToPolicy(editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? []), null, 2)}
                   </pre>
@@ -184,7 +186,7 @@ export default function RolesPage() {
               </div>
             )}
             <DialogFooter>
-              <Button onClick={handleSave}>Save Role</Button>
+              <Button onClick={handleSave}>{t("saveRole")}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -195,11 +197,11 @@ export default function RolesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Role</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Permissions</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("description")}</TableHead>
+                <TableHead>{t("permissions")}</TableHead>
+                <TableHead>{t("users")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -236,7 +238,7 @@ export default function RolesPage() {
                           size="sm"
                           onClick={() => { setEditingRole(role); setDialogOpen(true) }}
                         >
-                          Edit
+                          {t("editRole")}
                         </Button>
                         <Button
                           variant="ghost"
@@ -244,7 +246,7 @@ export default function RolesPage() {
                           className="text-destructive"
                           onClick={() => setDeleteConfirmRole(role)}
                         >
-                          Delete
+                          {t("deleteRole")}
                         </Button>
                       </div>
                     </TableCell>
@@ -259,25 +261,25 @@ export default function RolesPage() {
       <Dialog open={!!deleteConfirmRole} onOpenChange={(open) => !open && setDeleteConfirmRole(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Role</DialogTitle>
+            <DialogTitle>{t("deleteRole")}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the role &ldquo;{deleteConfirmRole?.name}&rdquo;? This action cannot be undone.
+              {t("confirmDelete", { name: deleteConfirmRole?.name ?? "" })}
               {deleteConfirmRole && deleteConfirmRole.userCount > 0 && (
                 <span className="mt-2 block text-destructive">
-                  {deleteConfirmRole.userCount} user(s) are currently assigned to this role.
+                  {t("usersAssigned", { count: deleteConfirmRole.userCount })}
                 </span>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmRole(null)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={() => deleteConfirmRole && handleDelete(deleteConfirmRole.id)}
             >
-              Delete
+              {t("delete")}
             </Button>
           </DialogFooter>
         </DialogContent>

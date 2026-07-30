@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -47,14 +48,15 @@ const roleDistribution = [
 const COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))"]
 
 export default function ReportsPage() {
+  const t = useTranslations("reports")
   const [dateRange, setDateRange] = useState("6m")
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-          <p className="text-muted-foreground">View system analytics and usage patterns</p>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
         <div className="flex gap-2">
           <Select value={dateRange} onValueChange={setDateRange}>
@@ -62,15 +64,15 @@ export default function ReportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1m">Last month</SelectItem>
-              <SelectItem value="3m">Last 3 months</SelectItem>
-              <SelectItem value="6m">Last 6 months</SelectItem>
-              <SelectItem value="1y">Last year</SelectItem>
+              <SelectItem value="1m">{t("lastMonth")}</SelectItem>
+              <SelectItem value="3m">{t("last3Months")}</SelectItem>
+              <SelectItem value="6m">{t("last6Months")}</SelectItem>
+              <SelectItem value="1y">{t("lastYear")}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t("export")}
           </Button>
         </div>
       </div>
@@ -78,38 +80,38 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("totalUsers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12,483</div>
-            <p className="text-xs text-muted-foreground">+12% from last period</p>
+            <p className="text-xs text-muted-foreground">+12% {t("fromLastPeriod")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("activeUsers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">8,921</div>
-            <p className="text-xs text-muted-foreground">71.4% engagement rate</p>
+            <p className="text-xs text-muted-foreground">71.4% {t("fromLastPeriod")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">API Requests</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("apiRequests")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">142K</div>
-            <p className="text-xs text-muted-foreground">+18% from last period</p>
+            <p className="text-xs text-muted-foreground">+18% {t("fromLastPeriod")}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("avgResponseTime")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">42ms</div>
-            <p className="text-xs text-muted-foreground">-5% from last period</p>
+            <p className="text-xs text-muted-foreground">-5% {t("fromLastPeriod")}</p>
           </CardContent>
         </Card>
       </div>
@@ -117,7 +119,7 @@ export default function ReportsPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>User Growth</CardTitle>
+            <CardTitle>{t("userGrowth")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -136,7 +138,7 @@ export default function ReportsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>API Requests & Errors</CardTitle>
+            <CardTitle>{t("apiRequestsErrors")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -157,7 +159,7 @@ export default function ReportsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Role Distribution</CardTitle>
+          <CardTitle>{t("roleDistribution")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">

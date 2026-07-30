@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { ThemeProvider } from "next-themes"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -19,13 +21,16 @@ export const metadata: Metadata = {
   description: "Enterprise application template built with Next.js",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
@@ -33,8 +38,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <NextIntlClientProvider messages={messages}>
+            {children}
+            <Toaster />
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

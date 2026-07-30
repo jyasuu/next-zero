@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +12,7 @@ import { Check, X } from "lucide-react"
 type Notification = (typeof mockNotifications)[0]
 
 export default function NotificationsPage() {
+  const t = useTranslations("notifications")
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [filter, setFilter] = useState<string>("all")
 
@@ -30,23 +32,33 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
+  const typeLabel = (type: string) => {
+    switch (type) {
+      case "info": return t("types.info")
+      case "warning": return t("types.warning")
+      case "error": return t("types.error")
+      case "success": return t("types.success")
+      default: return type
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            {unreadCount > 0 ? `You have ${unreadCount} unread notifications` : "No unread notifications"}
+            {unreadCount > 0 ? t("description", { count: unreadCount }) : t("noUnread")}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={markAllAsRead}>
             <Check className="mr-2 h-4 w-4" />
-            Mark all read
+            {t("markAllRead")}
           </Button>
           <Button variant="outline" size="sm" onClick={clearAll}>
             <X className="mr-2 h-4 w-4" />
-            Clear all
+            {t("clearAll")}
           </Button>
         </div>
       </div>
@@ -54,14 +66,14 @@ export default function NotificationsPage() {
       <div className="flex gap-4">
         <Select value={filter} onValueChange={setFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by type" />
+            <SelectValue placeholder={t("filterByType")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="info">Info</SelectItem>
-            <SelectItem value="warning">Warning</SelectItem>
-            <SelectItem value="error">Error</SelectItem>
-            <SelectItem value="success">Success</SelectItem>
+            <SelectItem value="all">{t("allTypes")}</SelectItem>
+            <SelectItem value="info">{t("types.info")}</SelectItem>
+            <SelectItem value="warning">{t("types.warning")}</SelectItem>
+            <SelectItem value="error">{t("types.error")}</SelectItem>
+            <SelectItem value="success">{t("types.success")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -70,7 +82,7 @@ export default function NotificationsPage() {
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
-              No notifications found
+              {t("noNotifications")}
             </div>
           ) : (
             <div className="divide-y">
@@ -86,7 +98,7 @@ export default function NotificationsPage() {
                         <div className="h-2 w-2 rounded-full bg-primary" />
                       )}
                       <Badge variant={notification.type === "error" ? "destructive" : notification.type === "warning" ? "warning" : "secondary"}>
-                        {notification.type}
+                        {typeLabel(notification.type)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">{notification.message}</p>
@@ -94,7 +106,7 @@ export default function NotificationsPage() {
                   </div>
                   {!notification.read && (
                     <Button variant="ghost" size="sm" onClick={() => markAsRead(notification.id)}>
-                      Mark read
+                      {t("markRead")}
                     </Button>
                   )}
                 </div>

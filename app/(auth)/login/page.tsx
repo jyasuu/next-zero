@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server"
 import { auth, providerConfigs } from "@/lib/auth"
 import { redirect } from "next/navigation"
 
@@ -5,14 +6,17 @@ export default async function LoginPage() {
   const session = await auth()
   if (session?.user) redirect("/dashboard")
 
+  const tCommon = await getTranslations("common")
+  const tLogin = await getTranslations("login")
+
   return (
     <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
       <div className="flex flex-col space-y-2 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">
           EA
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight">Enterprise App</h1>
-        <p className="text-sm text-muted-foreground">Sign in to your account</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{tCommon("appName")}</h1>
+        <p className="text-sm text-muted-foreground">{tLogin("signInToAccount")}</p>
       </div>
       <div className="grid gap-3">
         {providerConfigs.map((cfg, idx) => (
@@ -30,14 +34,14 @@ export default async function LoginPage() {
               {cfg.type === "keycloak" && (
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
               )}
-              Sign in with {cfg.name}
+              {tLogin("signInWith", { name: cfg.name })}
             </button>
           </form>
         ))}
       </div>
       {providerConfigs.length === 0 && (
         <p className="text-center text-sm text-muted-foreground">
-          No authentication providers configured.
+          {tLogin("noProviders")}
         </p>
       )}
     </div>

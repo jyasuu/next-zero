@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect } from "react"
+import { useTranslations } from "next-intl"
 import {
   LayoutDashboard,
   Users,
@@ -56,6 +57,8 @@ export function Sidebar({ userRole }: SidebarProps) {
   const role = mockRoles.find((r) => r.name === userRole)
   const { can } = ability(role ?? { permissions: [] })
 
+  const t = useTranslations()
+
   const visibleMain = mainNavItems.filter((item) => !item.requiredAction || can(item.requiredAction))
   const visibleSettings = settingsNavItems.filter((item) => !item.requiredAction || can(item.requiredAction))
 
@@ -74,7 +77,7 @@ export function Sidebar({ userRole }: SidebarProps) {
           <span className={cn(
             "overflow-hidden whitespace-nowrap transition-all duration-300",
             sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-          )}>Enterprise App</span>
+          )}>{t("common.appName")}</span>
         </Link>
       </div>
 
@@ -91,7 +94,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
-                      aria-label={item.title}
+                      aria-label={t(item.i18nKey)}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                         isActive
@@ -102,7 +105,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                       <Icon className="h-5 w-5" />
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{item.title}</TooltipContent>
+                  <TooltipContent side="right">{t(item.i18nKey)}</TooltipContent>
                 </Tooltip>
               )
             }
@@ -122,7 +125,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                 <span className={cn(
                   "overflow-hidden whitespace-nowrap transition-all duration-300",
                   sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                )}>{item.title}</span>
+                )}>{t(item.i18nKey)}</span>
               </Link>
             )
           })}
@@ -144,7 +147,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                   <TooltipTrigger asChild>
                     <Link
                       href={item.href}
-                      aria-label={item.title}
+                      aria-label={t(item.i18nKey)}
                       className={cn(
                         "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                         isActive
@@ -155,7 +158,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                       <Icon className="h-5 w-5" />
                     </Link>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{item.title}</TooltipContent>
+                  <TooltipContent side="right">{t(item.i18nKey)}</TooltipContent>
                 </Tooltip>
               )
             }
@@ -175,7 +178,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                 <span className={cn(
                   "overflow-hidden whitespace-nowrap transition-all duration-300",
                   sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-                )}>{item.title}</span>
+                )}>{t(item.i18nKey)}</span>
               </Link>
             )
           })}
@@ -193,7 +196,7 @@ export function Sidebar({ userRole }: SidebarProps) {
           <span className={cn(
             "overflow-hidden whitespace-nowrap transition-all duration-300 text-xs",
             sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-          )}>Collapse</span>
+          )}>{t("sidebar.collapse")}</span>
         </Button>
       </div>
     </aside>

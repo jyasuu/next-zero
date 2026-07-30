@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -38,21 +39,30 @@ const severityColor = {
 }
 
 export default function SystemHealthPage() {
+  const t = useTranslations("systemHealth")
   const [services] = useState<SystemService[]>(mockSystemServices)
   const [incidents] = useState<Incident[]>(mockIncidents)
 
   const overallStatus = services.every((s) => s.status === "healthy") ? "healthy" : services.some((s) => s.status === "down") ? "down" : "degraded"
 
+  const statusDesc = () => {
+    switch (overallStatus) {
+      case "healthy": return t("overallStatusDesc")
+      case "degraded": return t("overallStatusDegraded")
+      case "down": return t("overallStatusDown")
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">System Health</h1>
-        <p className="text-muted-foreground">Monitor system status and incidents</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Overall System Status</CardTitle>
+          <CardTitle>{t("overallStatus")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
@@ -60,14 +70,8 @@ export default function SystemHealthPage() {
               <Activity className="h-8 w-8" />
             </div>
             <div>
-              <p className="text-xl font-semibold capitalize">{overallStatus}</p>
-              <p className="text-sm text-muted-foreground">
-                {overallStatus === "healthy"
-                  ? "All systems operational"
-                  : overallStatus === "degraded"
-                  ? "Some systems experiencing issues"
-                  : "System outage detected"}
-              </p>
+              <p className="text-xl font-semibold capitalize">{t(overallStatus)}</p>
+              <p className="text-sm text-muted-foreground">{statusDesc()}</p>
             </div>
           </div>
         </CardContent>
@@ -75,17 +79,17 @@ export default function SystemHealthPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Services</CardTitle>
-          <CardDescription>Current status of all system services</CardDescription>
+          <CardTitle>{t("services")}</CardTitle>
+          <CardDescription>{t("servicesDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Service</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Uptime</TableHead>
-                <TableHead>Response Time</TableHead>
+                <TableHead>{t("service")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("uptime")}</TableHead>
+                <TableHead>{t("responseTime")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -97,7 +101,7 @@ export default function SystemHealthPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Icon className={`h-4 w-4 ${statusColor[service.status]}`} />
-                        <span className="capitalize">{service.status}</span>
+                        <span className="capitalize">{t(service.status)}</span>
                       </div>
                     </TableCell>
                     <TableCell>{service.uptime}</TableCell>
@@ -112,18 +116,18 @@ export default function SystemHealthPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Incident History</CardTitle>
-          <CardDescription>Recent incidents and their resolution status</CardDescription>
+          <CardTitle>{t("incidents")}</CardTitle>
+          <CardDescription>{t("incidentsDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Incident</TableHead>
-                <TableHead>Severity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reported</TableHead>
-                <TableHead>Resolved</TableHead>
+                <TableHead>{t("incident")}</TableHead>
+                <TableHead>{t("severity")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("reported")}</TableHead>
+                <TableHead>{t("resolved")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -164,7 +168,7 @@ export default function SystemHealthPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">CPU Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("cpu")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">45%</div>
@@ -175,7 +179,7 @@ export default function SystemHealthPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Memory Usage</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("memory")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">62%</div>
@@ -186,7 +190,7 @@ export default function SystemHealthPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Storage</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("storage")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">78%</div>

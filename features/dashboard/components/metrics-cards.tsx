@@ -1,14 +1,16 @@
+import { getTranslations } from "next-intl/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { mockMetrics } from "../types"
 
-export function MetricsCards() {
+export async function MetricsCards() {
+  const t = await getTranslations("dashboard")
   const metrics = mockMetrics
 
   const cards = [
-    { title: "Total Users", value: metrics.totalUsers.toLocaleString(), change: "+12%" },
-    { title: "Active Users", value: metrics.activeUsers.toLocaleString(), change: "+8%" },
-    { title: "Revenue", value: metrics.revenue, change: "+23%" },
-    { title: "Requests", value: metrics.requests.toLocaleString(), change: "+18%" },
+    { title: t("totalUsers"), value: metrics.totalUsers.toLocaleString(), change: "+12%" },
+    { title: t("activeUsers"), value: metrics.activeUsers.toLocaleString(), change: "+8%" },
+    { title: t("revenue"), value: metrics.revenue, change: "+23%" },
+    { title: t("requests"), value: metrics.requests.toLocaleString(), change: "+18%" },
   ]
 
   return (
@@ -20,7 +22,7 @@ export function MetricsCards() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{card.value}</div>
-            <p className="text-xs text-muted-foreground">{card.change} from last month</p>
+            <p className="text-xs text-muted-foreground">{card.change} {t("fromLastMonth")}</p>
           </CardContent>
         </Card>
       ))}

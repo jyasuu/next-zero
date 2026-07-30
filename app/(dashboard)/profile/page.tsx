@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -29,6 +30,7 @@ type ProfileForm = z.infer<typeof profileSchema>
 type PasswordForm = z.infer<typeof passwordSchema>
 
 export default function ProfilePage() {
+  const t = useTranslations("profile")
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: { firstName: "John", lastName: "Doe", email: "john@example.com" },
@@ -40,25 +42,25 @@ export default function ProfilePage() {
   })
 
   const onProfileSubmit = (data: ProfileForm) => {
-    toast({ title: "Profile updated", description: `${data.firstName} ${data.lastName} — changes saved.` })
+    toast({ title: t("profileUpdated"), description: `${data.firstName} ${data.lastName} — changes saved.` })
   }
 
   const onPasswordSubmit = (data: PasswordForm) => {
-    toast({ title: "Password updated", description: "Your password has been changed successfully." })
+    toast({ title: t("passwordUpdated"), description: t("passwordUpdatedDesc") })
     passwordForm.reset()
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">Manage your personal information</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("description")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
+          <CardTitle>{t("profileInfo")}</CardTitle>
+          <CardDescription>{t("profileInfoDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-4">
@@ -67,18 +69,18 @@ export default function ProfilePage() {
                 <AvatarImage src="" />
                 <AvatarFallback className="text-lg">JD</AvatarFallback>
               </Avatar>
-              <Button variant="outline" size="sm" type="button">Change Avatar</Button>
+              <Button variant="outline" size="sm" type="button">{t("changeAvatar")}</Button>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">{t("firstName")}</Label>
                 <Input id="firstName" {...profileForm.register("firstName")} />
                 {profileForm.formState.errors.firstName && (
                   <p className="text-sm text-destructive">{profileForm.formState.errors.firstName.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">{t("lastName")}</Label>
                 <Input id="lastName" {...profileForm.register("lastName")} />
                 {profileForm.formState.errors.lastName && (
                   <p className="text-sm text-destructive">{profileForm.formState.errors.lastName.message}</p>
@@ -86,46 +88,46 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input id="email" type="email" {...profileForm.register("email")} />
               {profileForm.formState.errors.email && (
                 <p className="text-sm text-destructive">{profileForm.formState.errors.email.message}</p>
               )}
             </div>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit">{t("saveChanges")}</Button>
           </form>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>Update your password</CardDescription>
+          <CardTitle>{t("changePassword")}</CardTitle>
+          <CardDescription>{t("changePasswordDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
+              <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
               <Input id="currentPassword" type="password" autoComplete="current-password" {...passwordForm.register("currentPassword")} />
               {passwordForm.formState.errors.currentPassword && (
                 <p className="text-sm text-destructive">{passwordForm.formState.errors.currentPassword.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
+              <Label htmlFor="newPassword">{t("newPassword")}</Label>
               <Input id="newPassword" type="password" autoComplete="new-password" {...passwordForm.register("newPassword")} />
               {passwordForm.formState.errors.newPassword && (
                 <p className="text-sm text-destructive">{passwordForm.formState.errors.newPassword.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
               <Input id="confirmPassword" type="password" autoComplete="new-password" {...passwordForm.register("confirmPassword")} />
               {passwordForm.formState.errors.confirmPassword && (
                 <p className="text-sm text-destructive">{passwordForm.formState.errors.confirmPassword.message}</p>
               )}
             </div>
-            <Button type="submit">Update Password</Button>
+            <Button type="submit">{t("updatePassword")}</Button>
           </form>
         </CardContent>
       </Card>

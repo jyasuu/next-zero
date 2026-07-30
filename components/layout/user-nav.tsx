@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { LogOut, Settings, User } from "lucide-react"
 
 import {
@@ -23,6 +24,7 @@ interface UserNavProps {
 
 export function UserNav({ user }: UserNavProps) {
   const router = useRouter()
+  const t = useTranslations("userNav")
 
   const initials = user.name
     ? user.name
@@ -48,15 +50,15 @@ export function UserNav({ user }: UserNavProps) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/profile")}>
           <User className="mr-2 h-4 w-4" />
-          Profile
+          {t("profile")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/settings")}>
           <Settings className="mr-2 h-4 w-4" />
-          Settings
+          {t("settings")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
@@ -68,7 +70,7 @@ export function UserNav({ user }: UserNavProps) {
           >
             <button className="flex w-full items-center">
               <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              {t("signOut")}
             </button>
           </form>
         </DropdownMenuItem>

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { mockChartData } from "../types"
 import {
@@ -15,11 +16,13 @@ import {
 } from "recharts"
 
 export function Charts() {
+  const t = useTranslations("dashboard")
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Users Overview</CardTitle>
+          <CardTitle>{t("usersOverview")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -37,7 +40,7 @@ export function Charts() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>API Requests</CardTitle>
+          <CardTitle>{t("apiRequests")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">

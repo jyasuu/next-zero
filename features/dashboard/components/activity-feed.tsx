@@ -1,12 +1,15 @@
+import { getTranslations } from "next-intl/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { mockActivities } from "../types"
 
-export function ActivityFeed() {
+export async function ActivityFeed() {
+  const t = await getTranslations("dashboard")
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Activity</CardTitle>
+        <CardTitle>{t("recentActivity")}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
