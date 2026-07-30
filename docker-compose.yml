@@ -1,4 +1,23 @@
 services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.0
+    ports:
+      - "8080:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_URL: http://localhost:8080
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8080
+      KC_HTTP_RELATIVE_PATH: /
+    command: ["start-dev", "--import-realm"]
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/realms/next-zero"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   app:
     build:
       context: .
@@ -6,11 +25,38 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - AUTH_PROVIDER=${AUTH_PROVIDER:-github}
-      - AUTH_GITHUB_ID=${AUTH_GITHUB_ID}
-      - AUTH_GITHUB_SECRET=${AUTH_GITHUB_SECRET}
-      - AUTH_SECRET=${AUTH_SECRET:-dev-secret-change-in-production}
-      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-    env_file:
-      - .env.local
+      AUTH_SECRET: dev-secret-not-for-production
+      NEXTAUTH_URL: http://localhost:3000
+      AUTH_PROVIDER: keycloak
+      KEYCLOAK_CLIENT_ID: next-zero-app
+      KEYCLOAK_CLIENT_SECRET: ""
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/next-zero
+    depends_on:
+      keycloak:
+        condition: service_healthy
     restart: unless-stopped
+
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.62.0
+    working_dir: /app
+    command: >
+      sh -c "
+        npm install -g pnpm &&
+        pnpm install --frozen-lockfile ||
+        pnpm install &&
+        pnpm exec playwright test
+      "
+    volumes:
+      - .:/app
+    environment:
+      PORT: 3000
+      AUTH_SECRET: dev-secret-not-for-production
+      NEXTAUTH_URL: http://app:3000
+      AUTH_PROVIDER: keycloak
+      KEYCLOAK_CLIENT_ID: next-zero-app
+      KEYCLOAK_CLIENT_SECRET: ""
+      KEYCLOAK_ISSUER: http://keycloak:8080/realms/next-zero
+      PLAYWRIGHT_BASE_URL: http://app:3000
+    depends_on:
+      app:
+        condition: service_started

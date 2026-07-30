@@ -1,0 +1,43 @@
+{
+  "id": "next-zero",
+  "realm": "next-zero",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "displayName": "Next Zero",
+  "accessTokenLifespan": 3600,
+  "clients": [
+    {
+      "clientId": "next-zero-app",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "email": "testuser@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "TestPass123!",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

@@ -26,8 +26,8 @@ export function getProviderConfigs(): ProviderConfig[] {
   }
 
   if (single === "keycloak") {
-    if (!process.env.KEYCLOAK_CLIENT_ID || !process.env.KEYCLOAK_CLIENT_SECRET || !process.env.KEYCLOAK_ISSUER) return []
-    return [{ id: "keycloak", name: "Keycloak", type: "keycloak", clientId: process.env.KEYCLOAK_CLIENT_ID, clientSecret: process.env.KEYCLOAK_CLIENT_SECRET, issuer: process.env.KEYCLOAK_ISSUER }]
+    if (!process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_CLIENT_SECRET === undefined || !process.env.KEYCLOAK_ISSUER) return []
+    return [{ id: "keycloak", name: "Keycloak", type: "keycloak", clientId: process.env.KEYCLOAK_CLIENT_ID, clientSecret: process.env.KEYCLOAK_CLIENT_SECRET ?? "", issuer: process.env.KEYCLOAK_ISSUER }]
   }
 
   return []

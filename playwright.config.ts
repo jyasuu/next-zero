@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3001",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3001",
     trace: "on-first-retry",
   },
   projects: [
@@ -17,10 +17,14 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "PORT=3001 AUTH_SECRET=test-secret NEXTAUTH_URL=http://localhost:3001 pnpm dev",
-    url: "http://localhost:3001/login",
-    reuseExistingServer: true,
-    timeout: 120000,
-  },
+  ...(process.env.PLAYWRIGHT_BASE_URL
+    ? {}
+    : {
+        webServer: {
+          command: "PORT=3001 AUTH_SECRET=test-secret NEXTAUTH_URL=http://localhost:3001 pnpm dev",
+          url: "http://localhost:3001/login",
+          reuseExistingServer: true,
+          timeout: 120000,
+        },
+      }),
 })
