@@ -35,6 +35,10 @@ yarn-error.log*
 .env.*
 !.env.example
 
+# e2e test reports
+playwright-report/
+test-results/
+
 # vercel
 .vercel
 
