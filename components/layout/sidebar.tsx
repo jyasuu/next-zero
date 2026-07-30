@@ -15,7 +15,6 @@ import {
   User,
   Bell,
   ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -68,21 +67,15 @@ export function Sidebar({ userRole }: SidebarProps) {
       )}
     >
       <div className="flex h-14 items-center border-b px-4">
-        {!sidebarCollapsed && (
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
-              EA
-            </div>
-            <span>Enterprise App</span>
-          </Link>
-        )}
-        {sidebarCollapsed && (
-          <Link href="/dashboard" className="mx-auto">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
-              EA
-            </div>
-          </Link>
-        )}
+        <Link href="/dashboard" className={cn("flex items-center gap-2 font-semibold", sidebarCollapsed && "mx-auto")}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold shrink-0">
+            EA
+          </div>
+          <span className={cn(
+            "overflow-hidden whitespace-nowrap transition-all duration-300",
+            sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          )}>Enterprise App</span>
+        </Link>
       </div>
 
       <div className="flex-1 overflow-y-auto py-2">
@@ -125,8 +118,11 @@ export function Sidebar({ userRole }: SidebarProps) {
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.title}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className={cn(
+                  "overflow-hidden whitespace-nowrap transition-all duration-300",
+                  sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                )}>{item.title}</span>
               </Link>
             )
           })}
@@ -175,8 +171,11 @@ export function Sidebar({ userRole }: SidebarProps) {
                     : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.title}
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className={cn(
+                  "overflow-hidden whitespace-nowrap transition-all duration-300",
+                  sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+                )}>{item.title}</span>
               </Link>
             )
           })}
@@ -190,8 +189,11 @@ export function Sidebar({ userRole }: SidebarProps) {
           className="w-full justify-center"
           onClick={() => sidebarCollapsedChanged(!sidebarCollapsed)}
         >
-          {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          {!sidebarCollapsed && <span className="text-xs">Collapse</span>}
+          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", sidebarCollapsed && "rotate-180")} />
+          <span className={cn(
+            "overflow-hidden whitespace-nowrap transition-all duration-300 text-xs",
+            sidebarCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+          )}>Collapse</span>
         </Button>
       </div>
     </aside>
