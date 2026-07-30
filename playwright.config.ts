@@ -13,8 +13,14 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+    {
       name: "chromium",
+      testMatch: /.*\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
     },
   ],
   ...(process.env.PLAYWRIGHT_BASE_URL

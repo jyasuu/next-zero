@@ -10,12 +10,27 @@ description: Run Playwright e2e tests for the Next.js enterprise app. Use when t
 Run the Playwright end-to-end test suite for the Next.js enterprise app. The project
 uses Auth.js with Keycloak as the auth provider.
 
-## Test File
+## Test Files
 
-All e2e tests are in `./e2e/`. Currently one spec:
+All e2e tests are in `./e2e/`.
 
-- `auth.spec.ts` — 3 tests: redirect unauthenticated to login, render login page with
-  "Enterprise App" heading, sign in with Keycloak (testuser / TestPass123!)
+- `auth.setup.ts` — setup project (runs first): signs in with Keycloak, saves
+  `storageState` to `e2e/.auth/user.json` for downstream tests.
+- `auth.spec.ts` — 3 standalone auth tests: redirect unauthenticated to login,
+  render login page with "Enterprise App" heading, sign in with Keycloak.
+- `pages.spec.ts` — 6 authenticated page tests (uses saved auth state): dashboard
+  metrics, users table search/pagination, settings tabs, profile pre-filled form,
+  notifications unread count, audit log pagination.
+
+The `playwright.config.ts` defines two projects:
+1. **setup** — runs `auth.setup.ts` first
+2. **chromium** — depends on setup, runs `*.spec.ts` tests with the shared auth state
+
+Run a single file:
+
+```bash
+pnpm exec playwright test e2e/pages.spec.ts
+```
 
 ## Run Locally (no Docker)
 
@@ -76,7 +91,9 @@ pnpm exec playwright test --headed --project=chromium
   `keycloak.local`. All env vars (`NEXTAUTH_URL`, `PLAYWRIGHT_BASE_URL`,
   `KEYCLOAK_ISSUER`, `KC_HOSTNAME_URL`) use these multi-label hostnames.
 - **Playwright config** (`playwright.config.ts`): uses `PLAYWRIGHT_BASE_URL` env var
-  when set (Docker mode); otherwise starts a dev server on port 3001.
+  when set (Docker mode); otherwise starts a dev server on port 3001. The config
+  defines a `setup` project (runs `auth.setup.ts` first) that the `chromium` project
+  depends on — auth state is shared via `storageState` at `e2e/.auth/user.json`.
 - **pnpm version:** The Docker image (Node 22-alpine) uses corepack to pin
   pnpm@8.15.6. The e2e service installs the same version via `npm install -g`.
 - **Keycloak realm:** Public client `next-zero-app` with `redirectUris: ["*"]`,
