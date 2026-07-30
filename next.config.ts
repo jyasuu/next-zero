@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts")
 
 const nextConfig: NextConfig = {
   ...(process.env.VERCEL ? {} : { output: "standalone" }),
+  serverExternalPackages: ["sql.js"],
 }
 
 export default withNextIntl(nextConfig)

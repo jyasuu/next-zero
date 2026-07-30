@@ -69,3 +69,63 @@ test.describe("Page user stories", () => {
     await expect(rows.first()).toBeVisible()
   })
 })
+
+test.describe("Users CRUD", () => {
+  test.use({ storageState: "e2e/.auth/user.json" })
+
+  test("creates, edits, and deletes a user", async ({ page }) => {
+    await page.goto("/users")
+    await expect(page.locator("h1")).toHaveText("Users")
+
+    // Create
+    await page.getByRole("button", { name: "Create User" }).click()
+    await page.locator("#name").fill("E2E Test User")
+    await page.locator("#email").fill("e2e@test.com")
+    await page.getByText("Save").click()
+    await expect(page.getByRole("cell", { name: "E2E Test User" })).toBeVisible()
+
+    // Edit
+    const row = page.getByRole("row").filter({ hasText: "E2E Test User" })
+    await row.locator('[aria-haspopup="menu"]').click()
+    await page.getByRole("menuitem", { name: /edit user/i }).click()
+    await page.locator("#name").fill("E2E User Updated")
+    await page.getByText("Save").click()
+    await expect(page.getByRole("cell", { name: "E2E User Updated" })).toBeVisible()
+
+    // Delete
+    const updatedRow = page.getByRole("row").filter({ hasText: "E2E User Updated" })
+    await updatedRow.locator('[aria-haspopup="menu"]').click()
+    await page.getByRole("menuitem", { name: /delete user/i }).click()
+    await page.getByRole("dialog").getByRole("button", { name: /delete/i }).click()
+    await expect(page.getByRole("cell", { name: "E2E User Updated" })).toHaveCount(0)
+  })
+})
+
+test.describe("Roles CRUD", () => {
+  test.use({ storageState: "e2e/.auth/user.json" })
+
+  test("creates, edits, and deletes a role", async ({ page }) => {
+    await page.goto("/roles")
+    await expect(page.locator("h1")).toHaveText("Role Management")
+
+    // Create
+    await page.getByRole("button", { name: "Create Role" }).click()
+    await page.locator("#roleName").fill("E2E Role")
+    await page.locator("#roleDesc").fill("Created in e2e test")
+    await page.locator('[id="perm-dashboard:Read"]').check()
+    await page.locator('[id="perm-users:Read"]').check()
+    await page.getByRole("button", { name: "Save Role" }).click()
+    await expect(page.getByRole("row").filter({ hasText: "E2E Role" })).toBeVisible()
+
+    // Edit
+    await page.getByRole("button", { name: /edit role/i }).first().click()
+    await page.locator("#roleName").fill("E2E Role Updated")
+    await page.getByRole("button", { name: "Save Role" }).click()
+    await expect(page.getByRole("cell", { name: "E2E Role Updated" })).toBeVisible()
+
+    // Delete
+    await page.getByRole("button", { name: /delete role/i }).first().click()
+    await page.getByRole("dialog").getByRole("button", { name: /delete/i }).click()
+    await expect(page.getByRole("cell", { name: "E2E Role Updated" })).toHaveCount(0)
+  })
+})

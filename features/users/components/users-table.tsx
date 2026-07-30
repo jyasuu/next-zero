@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   type ColumnDef,
   flexRender,
@@ -11,10 +11,11 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import { useTranslations } from "next-intl"
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Table,
   TableBody,
@@ -34,12 +51,61 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { type User, allRoles } from "../types"
-import { mockUsers } from "@/lib/constants"
 
 export function UsersTable() {
   const t = useTranslations("users")
-  const [data] = useState<User[]>(mockUsers)
+  const [data, setData] = useState<User[]>([])
   const [globalFilter, setGlobalFilter] = useState("")
+  const [loading, setLoading] = useState(true)
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deleteUser, setDeleteUser] = useState<User | null>(null)
+  const [form, setForm] = useState<{ name: string; email: string; role: string; status: "active" | "inactive" }>({ name: "", email: "", role: "Viewer", status: "active" })
+
+  const fetchUsers = async () => {
+    const res = await fetch("/api/users")
+    const users = await res.json()
+    setData(users)
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchUsers() }, [])
+
+  const openCreate = () => {
+    setEditingUser(null)
+    setForm({ name: "", email: "", role: "Viewer", status: "active" })
+    setDialogOpen(true)
+  }
+
+  const openEdit = (user: User) => {
+    setEditingUser(user)
+    setForm({ name: user.name, email: user.email, role: user.role, status: user.status })
+    setDialogOpen(true)
+  }
+
+  const handleSave = async () => {
+    if (editingUser) {
+      await fetch(`/api/users/${editingUser.id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+    } else {
+      await fetch("/api/users", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      })
+    }
+    setDialogOpen(false)
+    await fetchUsers()
+  }
+
+  const handleDelete = async () => {
+    if (!deleteUser) return
+    await fetch(`/api/users/${deleteUser.id}`, { method: "DELETE" })
+    setDeleteUser(null)
+    await fetchUsers()
+  }
 
   const columns: ColumnDef<User>[] = useMemo(() => [
     {
@@ -91,7 +157,8 @@ export function UsersTable() {
     },
     {
       id: "actions",
-      cell: () => {
+      cell: ({ row }) => {
+        const user = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -101,10 +168,12 @@ export function UsersTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
-              <DropdownMenuItem>{t("editUserAction")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEdit(user)}>{t("editUserAction")}</DropdownMenuItem>
               <DropdownMenuItem>{t("viewDetails")}</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">{t("deleteUserAction")}</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive" onClick={() => setDeleteUser(user)}>
+                {t("deleteUserAction")}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -123,6 +192,8 @@ export function UsersTable() {
     onGlobalFilterChange: setGlobalFilter,
   })
 
+  if (loading) return <div className="py-8 text-center text-muted-foreground">Loading...</div>
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -137,10 +208,53 @@ export function UsersTable() {
             {t("deleteSelected")} ({table.getFilteredSelectedRowModel().rows.length})
           </Button>
         )}
-        <Button size="sm" className="ml-auto">
-          {t("createUser")}
-        </Button>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="ml-auto" onClick={openCreate}>
+              {t("createUser")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingUser ? t("editUser") : t("createUser")}</DialogTitle>
+              <DialogDescription>{editingUser ? t("editUser") : t("createUser")}</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">{t("name")}</Label>
+                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("email")}</Label>
+                <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">{t("role")}</Label>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                  <SelectTrigger id="role"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {allRoles.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">{t("status")}</Label>
+                <Select value={form.status} onValueChange={(v: "active" | "inactive") => setForm({ ...form, status: v })}>
+                  <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">{t("active")}</SelectItem>
+                    <SelectItem value="inactive">{t("inactive")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleSave}>{t("save")}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -175,6 +289,7 @@ export function UsersTable() {
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2">
         <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
           {t("previous")}
@@ -183,6 +298,19 @@ export function UsersTable() {
           {t("next")}
         </Button>
       </div>
+
+      <Dialog open={!!deleteUser} onOpenChange={(open) => !open && setDeleteUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("deleteUser")}</DialogTitle>
+            <DialogDescription>{t("confirmDelete")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteUser(null)}>{t("cancel")}</Button>
+            <Button variant="destructive" onClick={handleDelete}>{t("delete")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

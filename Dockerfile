@@ -1,6 +1,6 @@
 # Stage 1: Dependencies
 FROM node:22-alpine AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
@@ -28,11 +28,13 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 RUN mkdir .next
+RUN mkdir -p data
 RUN chown nextjs:nodejs .next
+RUN chown nextjs:nodejs data
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/sql.js ./node_modules/sql.js
 USER nextjs
 
 EXPOSE 3000

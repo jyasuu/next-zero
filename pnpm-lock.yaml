@@ -90,6 +90,9 @@ dependencies:
   recharts:
     specifier: ^3.10.1
     version: 3.10.1(@types/react@19.0.10)(react-dom@19.0.0)(react-is@19.2.8)(react@19.0.0)(redux@5.0.1)
+  sql.js:
+    specifier: ^1.14.1
+    version: 1.14.1
   tailwind-merge:
     specifier: ^3.6.0
     version: 3.6.0
@@ -5884,6 +5887,10 @@ packages:
   /source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
+
+  /sql.js@1.14.1:
+    resolution: {integrity: sha512-gcj8zBWU5cFsi9WUP+4bFNXAyF1iRpA3LLyS/DP5xlrNzGmPIizUeBggKa8DbDwdqaKwUcTEnChtd2grWo/x/A==}
+    dev: false
 
   /stable-hash@0.0.5:
     resolution: {integrity: sha512-+L3ccpzibovGXFK+Ap/f8LOS0ahMrHTf3xu7mMLSpEGU0EO9ucaysSylKo9eRDFNhWve/y275iPmIZ4z39a9iA==}

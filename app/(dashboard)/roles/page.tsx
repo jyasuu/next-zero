@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,8 +26,18 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Plus, Shield, ChevronDown, ChevronRight } from "lucide-react"
-import { mockRoles, permissionDomains, type Role } from "@/lib/constants"
+import { permissionDomains } from "@/lib/constants"
 import type { Policy } from "@/lib/acl"
+
+interface Role {
+  id: string
+  name: string
+  description: string
+  permissions: string[]
+  policies?: Policy[]
+  user_count?: number
+  userCount?: number
+}
 
 function actionsToPolicy(actions: string[]): Policy {
   if (actions.length === 0) return { Version: "1", Statement: [] }
@@ -39,11 +49,21 @@ function actionsToPolicy(actions: string[]): Policy {
 
 export default function RolesPage() {
   const t = useTranslations("roles")
-  const [roles, setRoles] = useState<Role[]>(mockRoles)
+  const [roles, setRoles] = useState<Role[]>([])
+  const [loading, setLoading] = useState(true)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteConfirmRole, setDeleteConfirmRole] = useState<Role | null>(null)
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set(permissionDomains.map((d) => d.domain)))
+
+  const fetchRoles = async () => {
+    const res = await fetch("/api/roles")
+    const data = await res.json()
+    setRoles(data)
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchRoles() }, [])
 
   const toggleDomain = (domain: string) => {
     setExpandedDomains((prev) => {
@@ -62,30 +82,35 @@ export default function RolesPage() {
     return selectedActions.some((a) => a === action || a === action.split(":")[1])
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingRole) return
-    const actions = editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? []
-    const updatedRole = {
-      ...editingRole,
+    const actions = editingRole.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? editingRole.permissions
+    const body = {
+      name: editingRole.name,
+      description: editingRole.description,
+      permissions: actions.map((a: string) => (a.includes(":") ? a.split(":")[1] : a)),
       policies: [actionsToPolicy(actions)],
-      permissions: actions,
     }
-    setRoles((prev) => {
-      const existing = prev.findIndex((r) => r.id === editingRole.id)
-      if (existing >= 0) {
-        const updated = [...prev]
-        updated[existing] = updatedRole
-        return updated
-      }
-      return [...prev, { ...updatedRole, id: String(Date.now()), userCount: 0 }]
-    })
+    if (editingRole.id && roles.find((r) => r.id === editingRole.id)) {
+      await fetch(`/api/roles/${editingRole.id}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+    } else {
+      await fetch("/api/roles", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+    }
     setDialogOpen(false)
     setEditingRole(null)
+    await fetchRoles()
   }
 
-  const handleDelete = useCallback((id: string) => {
-    setRoles((prev) => prev.filter((r) => r.id !== id))
+  const handleDelete = useCallback(async (id: string) => {
+    await fetch(`/api/roles/${id}`, { method: "DELETE" })
     setDeleteConfirmRole(null)
+    await fetchRoles()
   }, [])
 
   const toggleAction = (action: string) => {
@@ -100,6 +125,13 @@ export default function RolesPage() {
     })
   }
 
+  const openCreate = () => {
+    setEditingRole({ id: "", name: "", description: "", permissions: [], policies: [] })
+    setDialogOpen(true)
+  }
+
+  if (loading) return <div className="py-8 text-center text-muted-foreground">Loading...</div>
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -109,7 +141,7 @@ export default function RolesPage() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setEditingRole({ id: "", name: "", description: "", permissions: [], policies: [], userCount: 0 })}>
+            <Button onClick={openCreate}>
               <Plus className="mr-2 h-4 w-4" />
               {t("createRole")}
             </Button>
@@ -207,6 +239,7 @@ export default function RolesPage() {
             <TableBody>
               {roles.map((role) => {
                 const actions = role.policies?.flatMap((p) => p.Statement.flatMap((s) => s.Action)) ?? role.permissions
+                const uc = role.user_count ?? role.userCount ?? 0
                 return (
                   <TableRow key={role.id}>
                     <TableCell>
@@ -218,7 +251,7 @@ export default function RolesPage() {
                     <TableCell className="text-muted-foreground">{role.description}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1 max-w-xs">
-                        {actions.slice(0, 4).map((perm) => (
+                        {actions.slice(0, 4).map((perm: string) => (
                           <Badge key={perm} variant="secondary" className="text-xs">
                             {perm.includes(":") ? perm.split(":")[1] : perm}
                           </Badge>
@@ -230,7 +263,7 @@ export default function RolesPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{role.userCount}</TableCell>
+                    <TableCell>{uc}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -264,9 +297,9 @@ export default function RolesPage() {
             <DialogTitle>{t("deleteRole")}</DialogTitle>
             <DialogDescription>
               {t("confirmDelete", { name: deleteConfirmRole?.name ?? "" })}
-              {deleteConfirmRole && deleteConfirmRole.userCount > 0 && (
+              {deleteConfirmRole && (deleteConfirmRole.user_count ?? deleteConfirmRole.userCount ?? 0) > 0 && (
                 <span className="mt-2 block text-destructive">
-                  {t("usersAssigned", { count: deleteConfirmRole.userCount })}
+                  {t("usersAssigned", { count: deleteConfirmRole.user_count ?? deleteConfirmRole.userCount ?? 0 })}
                 </span>
               )}
             </DialogDescription>
