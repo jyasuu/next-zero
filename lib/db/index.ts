@@ -9,6 +9,8 @@ const DB_PATH =
     ? path.join(os.tmpdir(), "data", "app.db")
     : path.join(process.cwd(), "data", "app.db"))
 
+const SQL_WASM_PATH = path.join(process.cwd(), "lib", "db", "sql-wasm.wasm")
+
 let db: Database | null = null
 
 const MIGRATIONS: string[] = [
@@ -79,7 +81,7 @@ export function queryRow(db: Database, sql: string, params: (string | number | n
 export async function getDb(): Promise<Database> {
   if (db) return db
   const SQL: SqlJsStatic = await initSqlJs({
-    locateFile: (file: string) => path.join(process.cwd(), "node_modules", "sql.js", "dist", file),
+    wasmBinary: fs.readFileSync(SQL_WASM_PATH),
   })
   const dir = path.dirname(DB_PATH)
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
