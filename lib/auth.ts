@@ -5,31 +5,36 @@ import Credentials from "next-auth/providers/credentials"
 import { getProviderConfigs } from "@/lib/auth-providers"
 import { getDb, queryRow, save } from "@/lib/db"
 import { mapRealmRoles } from "@/lib/role-mapping"
+import { isAdminLoginEnabled } from "@/lib/admin-login"
 
 const providerConfigs = getProviderConfigs()
 
 const providers = [
-  Credentials({
-    id: "credentials",
-    name: "Server Admin",
-    credentials: {
-      username: { label: "Username", type: "text" },
-      password: { label: "Password", type: "password" },
-    },
-    async authorize(credentials) {
-      const username = credentials?.username as string | undefined
-      const password = credentials?.password as string | undefined
-      if (
-        username &&
-        password &&
-        username === process.env.ADMIN_USERNAME &&
-        password === process.env.ADMIN_PASSWORD
-      ) {
-        return { id: "admin", name: "Server Admin", email: "admin@localhost", isAdmin: true }
-      }
-      return null
-    },
-  }),
+  ...(isAdminLoginEnabled()
+    ? [
+        Credentials({
+          id: "credentials",
+          name: "Server Admin",
+          credentials: {
+            username: { label: "Username", type: "text" },
+            password: { label: "Password", type: "password" },
+          },
+          async authorize(credentials) {
+            const username = credentials?.username as string | undefined
+            const password = credentials?.password as string | undefined
+            if (
+              username &&
+              password &&
+              username === process.env.ADMIN_USERNAME &&
+              password === process.env.ADMIN_PASSWORD
+            ) {
+              return { id: "admin", name: "Server Admin", email: "admin@localhost", isAdmin: true }
+            }
+            return null
+          },
+        }),
+      ]
+    : []),
   ...providerConfigs.map((cfg) => {
     if (cfg.type === "github") {
       return GitHub({ clientId: cfg.clientId, clientSecret: cfg.clientSecret })
