@@ -7,6 +7,23 @@
   "loginWithEmailAllowed": true,
   "displayName": "Next Zero",
   "accessTokenLifespan": 3600,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Realm administrator"
+      },
+      {
+        "name": "editor",
+        "description": "Can create and edit content"
+      },
+      {
+        "name": "viewer",
+        "description": "Read-only access"
+      }
+    ],
+    "client": {}
+  },
   "clients": [
     {
       "clientId": "next-zero-app",

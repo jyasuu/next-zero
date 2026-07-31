@@ -9,7 +9,7 @@ export type NavItem = {
 }
 
 export const mainNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", requiredAction: "dashboard:Read", i18nKey: "nav.dashboard" },
+  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", i18nKey: "nav.dashboard" },
   { title: "Users", href: "/users", icon: "Users", requiredAction: "users:Read", i18nKey: "nav.users" },
   { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read", i18nKey: "nav.auditLog" },
   { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read", i18nKey: "nav.apiKeys" },

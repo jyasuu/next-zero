@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test"
 
-test.use({ storageState: "e2e/.auth/user.json" })
+test.use({ storageState: "e2e/.auth/admin.json" })
 
 test.describe("Page user stories", () => {
   test("dashboard shows key metrics at a glance", async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe("Page user stories", () => {
     await expect(page.getByRole("cell", { name: "Alice Johnson" })).toBeVisible()
     await search.clear()
     await page.getByRole("button", { name: "Next" }).click()
-    await expect(rows).toHaveCount(2)
+    await expect(rows).toHaveCount(3)
   })
 
   test("settings tabs switch between content panels", async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe("Page user stories", () => {
 })
 
 test.describe("Users CRUD", () => {
-  test.use({ storageState: "e2e/.auth/user.json" })
+  test.use({ storageState: "e2e/.auth/admin.json" })
 
   test("creates, edits, and deletes a user", async ({ page }) => {
     await page.goto("/users")
@@ -102,7 +102,7 @@ test.describe("Users CRUD", () => {
 })
 
 test.describe("Roles CRUD", () => {
-  test.use({ storageState: "e2e/.auth/user.json" })
+  test.use({ storageState: "e2e/.auth/admin.json" })
 
   test("creates, edits, and deletes a role", async ({ page }) => {
     await page.goto("/roles")

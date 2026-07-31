@@ -73,7 +73,10 @@
     "actions": "操作",
     "editUserAction": "编辑用户",
     "viewDetails": "查看详情",
-    "deleteUserAction": "删除用户"
+    "deleteUserAction": "删除用户",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除"
   },
   "settings": {
     "title": "系统设置",
@@ -266,7 +269,17 @@
     "appName": "企业应用",
     "signInToAccount": "登录您的账户",
     "noProviders": "未配置认证服务。",
-    "signInWith": "使用 {name} 登录"
+    "signInWith": "使用 {name} 登录",
+    "username": "用户名",
+    "password": "密码",
+    "signIn": "登录",
+    "invalidCredentials": "用户名或密码无效。",
+    "or": "或"
+  },
+  "forbidden": {
+    "title": "访问被拒绝",
+    "message": "您没有权限查看此内容。",
+    "backToDashboard": "返回仪表盘"
   },
   "sidebar": {
     "collapse": "收起"

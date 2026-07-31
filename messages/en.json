@@ -73,7 +73,10 @@
     "actions": "Actions",
     "editUserAction": "Edit user",
     "viewDetails": "View details",
-    "deleteUserAction": "Delete user"
+    "deleteUserAction": "Delete user",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
   },
   "settings": {
     "title": "Settings",
@@ -266,7 +269,17 @@
     "appName": "Enterprise App",
     "signInToAccount": "Sign in to your account",
     "noProviders": "No authentication providers configured.",
-    "signInWith": "Sign in with {name}"
+    "signInWith": "Sign in with {name}",
+    "username": "Username",
+    "password": "Password",
+    "signIn": "Sign In",
+    "invalidCredentials": "Invalid username or password.",
+    "or": "or"
+  },
+  "forbidden": {
+    "title": "Access Forbidden",
+    "message": "You don't have permission to view this content.",
+    "backToDashboard": "Back to Dashboard"
   },
   "sidebar": {
     "collapse": "Collapse"

@@ -128,3 +128,25 @@ describe("ability", () => {
     expect(can("dashboard:Read")).toBe(false)
   })
 })
+
+describe("ability with isAdmin", () => {
+  it("allows every action when isAdmin is true", () => {
+    const { can } = ability({ permissions: [] }, true)
+    expect(can("users:Read")).toBe(true)
+    expect(can("users:Delete")).toBe(true)
+    expect(can("anything:AtAll")).toBe(true)
+  })
+
+  it("still denies when isAdmin is false", () => {
+    const { can } = ability({ permissions: [] }, false)
+    expect(can("users:Read")).toBe(false)
+  })
+
+  it("isAdmin overrides an explicit deny", () => {
+    const { can } = ability(
+      { policies: [{ Version: "1", Statement: [{ Effect: "Deny", Action: ["*"] }] }] },
+      true
+    )
+    expect(can("users:Delete")).toBe(true)
+  })
+})

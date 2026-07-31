@@ -56,7 +56,7 @@ export interface RolePolicies {
   policies?: Policy[]
 }
 
-export function ability(role: RolePolicies) {
+export function ability(role: RolePolicies, isAdmin = false) {
   const allPolicies: Policy[] = [
     ...(role.policies ?? []),
   ]
@@ -68,6 +68,7 @@ export function ability(role: RolePolicies) {
   }
   return {
     can(action: string, resource?: string) {
+      if (isAdmin) return true
       return evaluate(action, allPolicies, resource)
     },
   }

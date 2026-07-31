@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { signOut } from "next-auth/react"
 import { LogOut, Settings, User } from "lucide-react"
 
 import {
@@ -62,17 +63,13 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <form
-            action={async () => {
-              const { signOut } = await import("@/lib/auth")
-              await signOut()
-            }}
+          <button
+            className="flex w-full items-center"
+            onClick={() => signOut({ callbackUrl: "/login" })}
           >
-            <button className="flex w-full items-center">
-              <LogOut className="mr-2 h-4 w-4" />
-              {t("signOut")}
-            </button>
-          </form>
+            <LogOut className="mr-2 h-4 w-4" />
+            {t("signOut")}
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

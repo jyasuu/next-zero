@@ -33,6 +33,9 @@ services:
       KEYCLOAK_CLIENT_ID: next-zero-app
       KEYCLOAK_CLIENT_SECRET: ""
       KEYCLOAK_ISSUER: http://keycloak.local:8080/realms/next-zero
+      ROLE_MAPPING: '{"admin":"Admin","editor":"Editor","viewer":"Viewer"}'
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
     depends_on:
       keycloak:
         condition: service_healthy

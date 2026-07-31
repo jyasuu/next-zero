@@ -14,7 +14,7 @@ export default defineConfig({
   projects: [
     {
       name: "setup",
-      testMatch: /auth\.setup\.ts/,
+      testMatch: /(auth|admin)\.setup\.ts/,
     },
     {
       name: "chromium",

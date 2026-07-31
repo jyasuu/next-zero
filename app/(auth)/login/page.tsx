@@ -1,13 +1,26 @@
 import { getTranslations } from "next-intl/server"
 import { auth, providerConfigs } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
-export default async function LoginPage() {
+async function handleAdminLogin(formData: FormData) {
+  "use server"
+  const { signIn } = await import("@/lib/auth")
+  await signIn("credentials", formData)
+}
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>
+}) {
   const session = await auth()
   if (session?.user) redirect("/dashboard")
 
   const tCommon = await getTranslations("common")
   const tLogin = await getTranslations("login")
+  const { error } = await searchParams
 
   return (
     <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
@@ -17,6 +30,34 @@ export default async function LoginPage() {
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">{tCommon("appName")}</h1>
         <p className="text-sm text-muted-foreground">{tLogin("signInToAccount")}</p>
+      </div>
+      <form action={handleAdminLogin} className="grid gap-2">
+        {error === "CredentialsSignin" && (
+          <p className="text-sm text-destructive">{tLogin("invalidCredentials")}</p>
+        )}
+        <Input
+          name="username"
+          type="text"
+          autoComplete="username"
+          placeholder={tLogin("username")}
+          required
+        />
+        <Input
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          placeholder={tLogin("password")}
+          required
+        />
+        <input type="hidden" name="redirectTo" value="/dashboard" />
+        <Button type="submit" className="mt-1">
+          {tLogin("signIn")}
+        </Button>
+      </form>
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">{tLogin("or")}</span>
+        <div className="h-px flex-1 bg-border" />
       </div>
       <div className="grid gap-3">
         {providerConfigs.map((cfg, idx) => (

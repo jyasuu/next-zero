@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
+import { ForbiddenCard } from "@/components/forbidden-card"
 import { type User, allRoles } from "../types"
 
 export function UsersTable() {
@@ -57,6 +58,7 @@ export function UsersTable() {
   const [data, setData] = useState<User[]>([])
   const [globalFilter, setGlobalFilter] = useState("")
   const [loading, setLoading] = useState(true)
+  const [forbidden, setForbidden] = useState(false)
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -65,6 +67,11 @@ export function UsersTable() {
 
   const fetchUsers = async () => {
     const res = await fetch("/api/users")
+    if (res.status === 403) {
+      setForbidden(true)
+      setLoading(false)
+      return
+    }
     const users = await res.json()
     setData(users)
     setLoading(false)
@@ -86,15 +93,25 @@ export function UsersTable() {
 
   const handleSave = async () => {
     if (editingUser) {
-      await fetch(`/api/users/${editingUser.id}`, {
+      const res = await fetch(`/api/users/${editingUser.id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
+      if (res.status === 403) {
+        setDialogOpen(false)
+        setForbidden(true)
+        return
+      }
     } else {
-      await fetch("/api/users", {
+      const res = await fetch("/api/users", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
+      if (res.status === 403) {
+        setDialogOpen(false)
+        setForbidden(true)
+        return
+      }
     }
     setDialogOpen(false)
     await fetchUsers()
@@ -102,7 +119,12 @@ export function UsersTable() {
 
   const handleDelete = async () => {
     if (!deleteUser) return
-    await fetch(`/api/users/${deleteUser.id}`, { method: "DELETE" })
+    const res = await fetch(`/api/users/${deleteUser.id}`, { method: "DELETE" })
+    if (res.status === 403) {
+      setDeleteUser(null)
+      setForbidden(true)
+      return
+    }
     setDeleteUser(null)
     await fetchUsers()
   }
@@ -193,6 +215,8 @@ export function UsersTable() {
   })
 
   if (loading) return <div className="py-8 text-center text-muted-foreground">Loading...</div>
+
+  if (forbidden) return <ForbiddenCard />
 
   return (
     <div className="space-y-4">

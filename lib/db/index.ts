@@ -29,7 +29,7 @@ const MIGRATIONS: string[] = [
   DELETE FROM roles;
   INSERT INTO roles (id, name, description, permissions, policies, user_count) VALUES
     ('1', 'Admin', 'Full system access', '["read","write","delete","manage_users","manage_roles"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","users:Write","users:Create","users:Delete","users:Manage","roles:Read","roles:Manage","audit:Read","api-keys:Read","api-keys:Manage","reports:Read","reports:Export","settings:Read","system:Read","notifications:Read"]}]}]', 3),
-    ('2', 'Editor', 'Can create and edit content', '["read","write"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","reports:Read","settings:Read","notifications:Read"]}]}]', 4),
+    ('2', 'Editor', 'Can create and edit content', '["read","write"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read"]}]}]', 4),
     ('3', 'Viewer', 'Read-only access', '["read"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","reports:Read"]}]}]', 5),
     ('4', 'Auditor', 'Access to audit logs and reports', '["read","export"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","audit:Read","reports:Read","reports:Export"]}]}]', 0);
   INSERT INTO users (id, name, email, role, status, created_at) VALUES
@@ -45,9 +45,11 @@ const MIGRATIONS: string[] = [
     ('10', 'Jack Anderson', 'jack@example.com', 'Editor', 'active', '2024-06-15'),
     ('11', 'Karen Thomas', 'karen@example.com', 'Viewer', 'active', '2024-07-01'),
     ('12', 'Leo Garcia', 'leo@example.com', 'Auditor', 'active', '2024-07-15');`,
+
+  `UPDATE roles SET policies = '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read"]}]}]' WHERE name = 'Editor' AND policies NOT LIKE '%audit:Read%';`,
 ]
 
-function save(database: Database) {
+export function save(database: Database) {
   const dir = path.dirname(DB_PATH)
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(DB_PATH, Buffer.from(database.export()))

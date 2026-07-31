@@ -28,6 +28,7 @@ import {
 import { Plus, Shield, ChevronDown, ChevronRight } from "lucide-react"
 import { permissionDomains } from "@/lib/constants"
 import type { Policy } from "@/lib/acl"
+import { ForbiddenCard } from "@/components/forbidden-card"
 
 interface Role {
   id: string
@@ -55,9 +56,15 @@ export default function RolesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteConfirmRole, setDeleteConfirmRole] = useState<Role | null>(null)
   const [expandedDomains, setExpandedDomains] = useState<Set<string>>(new Set(permissionDomains.map((d) => d.domain)))
+  const [forbidden, setForbidden] = useState(false)
 
   const fetchRoles = async () => {
     const res = await fetch("/api/roles")
+    if (res.status === 403) {
+      setForbidden(true)
+      setLoading(false)
+      return
+    }
     const data = await res.json()
     setRoles(data)
     setLoading(false)
@@ -91,16 +98,23 @@ export default function RolesPage() {
       permissions: actions.map((a: string) => (a.includes(":") ? a.split(":")[1] : a)),
       policies: [actionsToPolicy(actions)],
     }
+    let res: Response
     if (editingRole.id && roles.find((r) => r.id === editingRole.id)) {
-      await fetch(`/api/roles/${editingRole.id}`, {
+      res = await fetch(`/api/roles/${editingRole.id}`, {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
     } else {
-      await fetch("/api/roles", {
+      res = await fetch("/api/roles", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
+    }
+    if (res.status === 403) {
+      setDialogOpen(false)
+      setEditingRole(null)
+      setForbidden(true)
+      return
     }
     setDialogOpen(false)
     setEditingRole(null)
@@ -108,7 +122,12 @@ export default function RolesPage() {
   }
 
   const handleDelete = useCallback(async (id: string) => {
-    await fetch(`/api/roles/${id}`, { method: "DELETE" })
+    const res = await fetch(`/api/roles/${id}`, { method: "DELETE" })
+    if (res.status === 403) {
+      setDeleteConfirmRole(null)
+      setForbidden(true)
+      return
+    }
     setDeleteConfirmRole(null)
     await fetchRoles()
   }, [])
@@ -131,6 +150,8 @@ export default function RolesPage() {
   }
 
   if (loading) return <div className="py-8 text-center text-muted-foreground">Loading...</div>
+
+  if (forbidden) return <ForbiddenCard />
 
   return (
     <div className="space-y-6">

@@ -19,8 +19,8 @@ import {
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { ability } from "@/lib/acl"
-import { mainNavItems, settingsNavItems, mockRoles } from "@/lib/constants"
+import { ability, type RolePolicies } from "@/lib/acl"
+import { mainNavItems, settingsNavItems } from "@/lib/constants"
 import { useUIStore } from "@/stores/ui-store"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Button } from "@/components/ui/button"
@@ -40,10 +40,11 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 }
 
 interface SidebarProps {
-  userRole?: string
+  role: RolePolicies | null
+  isAdmin: boolean
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ role, isAdmin }: SidebarProps) {
   const pathname = usePathname()
   const isMobile = useMediaQuery("(max-width: 767px)")
   const { sidebarCollapsed, sidebarCollapsedChanged } = useUIStore()
@@ -54,8 +55,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     }
   }, [isMobile])
 
-  const role = mockRoles.find((r) => r.name === userRole)
-  const { can } = ability(role ?? { permissions: [] })
+  const { can } = ability(role ?? { permissions: [] }, isAdmin)
 
   const t = useTranslations()
 
