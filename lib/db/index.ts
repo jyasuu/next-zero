@@ -1,8 +1,13 @@
 import initSqlJs, { type SqlJsStatic, type Database } from "sql.js"
 import path from "path"
 import fs from "fs"
+import os from "os"
 
-const DB_PATH = process.env.DATABASE_URL || path.join(process.cwd(), "data", "app.db")
+const DB_PATH =
+  process.env.DATABASE_URL ||
+  (process.env.VERCEL === "1"
+    ? path.join(os.tmpdir(), "data", "app.db")
+    : path.join(process.cwd(), "data", "app.db"))
 
 let db: Database | null = null
 
