@@ -59,14 +59,34 @@ describe("uiMessagesToModelMessages", () => {
             type: "tool-call",
             toolCallId: "call_1",
             toolName: "users_create",
-            input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
+            input: { name: "Ada", email: "ada@example.com" },
           },
         ],
       },
     ])
   })
 
-  it("maps an executed tool part to a tool call plus a json tool result", () => {
+  it("parses a json-string tool input to an object", () => {
+    const message: UIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        {
+          ...toolPart({
+            state: "input-available",
+            input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
+          }),
+        } as never,
+      ],
+    }
+    const modelMessages = uiMessagesToModelMessages([message])
+    const toolCall = (modelMessages[0] as { content: { type: string; input: unknown }[] }).content.find(
+      (p) => p.type === "tool-call"
+    )
+    expect(toolCall?.input).toEqual({ name: "Ada", email: "ada@example.com" })
+  })
+
+  it("maps an executed tool part to a tool call plus a json tool result message", () => {
     const message: UIMessage = {
       id: "a1",
       role: "assistant",
@@ -87,9 +107,13 @@ describe("uiMessagesToModelMessages", () => {
             type: "tool-call",
             toolCallId: "call_1",
             toolName: "users_create",
-            input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
-            providerExecuted: true,
+            input: { name: "Ada", email: "ada@example.com" },
           },
+        ],
+      },
+      {
+        role: "tool",
+        content: [
           {
             type: "tool-result",
             toolCallId: "call_1",
@@ -101,7 +125,7 @@ describe("uiMessagesToModelMessages", () => {
     ])
   })
 
-  it("maps a denied tool part to a tool call plus an error tool result", () => {
+  it("maps a denied tool part to a tool call plus an error tool result message", () => {
     const message: UIMessage = {
       id: "a1",
       role: "assistant",
@@ -123,9 +147,13 @@ describe("uiMessagesToModelMessages", () => {
             type: "tool-call",
             toolCallId: "call_1",
             toolName: "users_create",
-            input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
-            providerExecuted: true,
+            input: { name: "Ada", email: "ada@example.com" },
           },
+        ],
+      },
+      {
+        role: "tool",
+        content: [
           {
             type: "tool-result",
             toolCallId: "call_1",

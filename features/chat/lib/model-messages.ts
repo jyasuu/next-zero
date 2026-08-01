@@ -3,20 +3,9 @@ import {
   isOutputAvailable,
   isOutputError,
   isToolPart,
+  parseToolInput,
   toolNameFromPart,
 } from "@/features/chat/lib/parts"
-
-function stringifyInput(input: unknown): string {
-  if (typeof input === "string") {
-    try {
-      JSON.parse(input)
-      return input
-    } catch {
-      return JSON.stringify(input)
-    }
-  }
-  return JSON.stringify(input ?? {})
-}
 
 export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[] {
   const modelMessages: ModelMessage[] = []
@@ -37,6 +26,9 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
     const content: NonNullable<
       Extract<ModelMessage, { role: "assistant" }>["content"]
     > = []
+    const toolResults: NonNullable<
+      Extract<ModelMessage, { role: "tool" }>["content"]
+    > = []
 
     for (const part of message.parts) {
       if (part.type === "text") {
@@ -50,19 +42,17 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
 
       const toolCallId = "toolCallId" in part ? String(part.toolCallId) : "call"
       const input = "input" in part ? part.input : undefined
-      const hasResult = isOutputAvailable(part) || isOutputError(part)
 
       content.push({
         type: "tool-call",
         toolCallId,
         toolName,
-        input: stringifyInput(input),
-        ...(hasResult ? { providerExecuted: true } : {}),
+        input: parseToolInput(input),
       })
 
       if (isOutputAvailable(part)) {
         const output = "output" in part ? part.output : undefined
-        content.push({
+        toolResults.push({
           type: "tool-result",
           toolCallId,
           toolName,
@@ -70,7 +60,7 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
         })
       } else if (isOutputError(part)) {
         const errorText = "errorText" in part && part.errorText ? part.errorText : "Tool execution failed."
-        content.push({
+        toolResults.push({
           type: "tool-result",
           toolCallId,
           toolName,
@@ -80,6 +70,9 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
     }
 
     modelMessages.push({ role: "assistant", content })
+    if (toolResults.length > 0) {
+      modelMessages.push({ role: "tool", content: toolResults })
+    }
   }
 
   return modelMessages
