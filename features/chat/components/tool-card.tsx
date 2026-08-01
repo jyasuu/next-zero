@@ -3,7 +3,8 @@
 import { Check, ShieldCheck, ShieldX, Wrench } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
-import { isOutputAvailable, isOutputError, parseToolInput, type ToolPartLike } from "@/features/chat/lib/parts"
+import { ToolResult } from "@/features/chat/components/tool-result"
+import { isOutputAvailable, isOutputError, parseToolInput, toolNameFromPart, type ToolPartLike } from "@/features/chat/lib/parts"
 import { shouldRequireApproval } from "@/features/chat/lib/approval"
 import type { ChatTool } from "@/features/chat/types"
 
@@ -13,19 +14,6 @@ function prettyJson(value: unknown): string {
   } catch {
     return String(value)
   }
-}
-
-function summaryOf(output: unknown): string {
-  if (output === null || output === undefined) return "Completed"
-  if (typeof output === "string") return output.slice(0, 200)
-  if (Array.isArray(output)) return `${output.length} item(s)`
-  if (typeof output === "object") {
-    const obj = output as Record<string, unknown>
-    if (obj.ok === true && obj.data === undefined) return "Completed"
-    if (obj.data !== undefined) return prettyJson(obj.data).slice(0, 200)
-    return prettyJson(output).slice(0, 200)
-  }
-  return String(output)
 }
 
 interface ToolCardProps {
@@ -38,6 +26,7 @@ interface ToolCardProps {
 export function ToolCard({ tool, part, onApprove, onDeny }: ToolCardProps) {
   const t = useTranslations("chat")
   const name = tool?.name ?? part.type.replace("tool-", "")
+  const toolId = tool?.id ?? toolNameFromPart(part) ?? name
   const needsApproval =
     part.state === "input-available" && tool !== undefined && shouldRequireApproval(tool)
   const toolUnavailable = part.state === "input-available" && tool === undefined
@@ -74,9 +63,7 @@ export function ToolCard({ tool, part, onApprove, onDeny }: ToolCardProps) {
           </pre>
         )}
 
-        {isOutputAvailable(part) && part.output !== undefined && (
-          <p className="pt-2 text-xs text-muted-foreground">{summaryOf(part.output)}</p>
-        )}
+        {isOutputAvailable(part) && part.output !== undefined && <ToolResult toolId={toolId} output={part.output} />}
 
         {isOutputError(part) && (
           <p className="pt-2 text-xs text-destructive">
