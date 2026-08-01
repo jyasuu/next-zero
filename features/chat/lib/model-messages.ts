@@ -1,14 +1,10 @@
 import type { UIMessage, ModelMessage, JSONValue } from "ai"
-
-function toolNameFromPart(part: UIMessage["parts"][number]): string | null {
-  if (part.type === "dynamic-tool") {
-    return part.toolName
-  }
-  if (typeof part.type === "string" && part.type.startsWith("tool-")) {
-    return part.type.slice("tool-".length)
-  }
-  return null
-}
+import {
+  isOutputAvailable,
+  isOutputError,
+  isToolPart,
+  toolNameFromPart,
+} from "@/features/chat/lib/parts"
 
 function stringifyInput(input: unknown): string {
   if (typeof input === "string") {
@@ -47,15 +43,14 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
         content.push({ type: "text", text: part.text })
         continue
       }
+      if (!isToolPart(part)) continue
 
       const toolName = toolNameFromPart(part)
       if (!toolName) continue
 
-      const partState = "state" in part ? part.state : undefined
       const toolCallId = "toolCallId" in part ? String(part.toolCallId) : "call"
       const input = "input" in part ? part.input : undefined
-
-      const hasResult = partState === "output-available" || partState === "output-error"
+      const hasResult = isOutputAvailable(part) || isOutputError(part)
 
       content.push({
         type: "tool-call",
@@ -65,7 +60,7 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
         ...(hasResult ? { providerExecuted: true } : {}),
       })
 
-      if (partState === "output-available") {
+      if (isOutputAvailable(part)) {
         const output = "output" in part ? part.output : undefined
         content.push({
           type: "tool-result",
@@ -73,7 +68,7 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
           toolName,
           output: { type: "json", value: output as JSONValue },
         })
-      } else if (partState === "output-error") {
+      } else if (isOutputError(part)) {
         const errorText = "errorText" in part && part.errorText ? part.errorText : "Tool execution failed."
         content.push({
           type: "tool-result",

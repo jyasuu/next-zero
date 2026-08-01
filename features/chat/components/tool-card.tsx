@@ -4,6 +4,7 @@ import { Check, ShieldCheck, ShieldX, Wrench } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { isOutputAvailable, isOutputError, parseToolInput, type ToolPartLike } from "@/features/chat/lib/parts"
+import { shouldRequireApproval } from "@/features/chat/lib/approval"
 import type { ChatTool } from "@/features/chat/types"
 
 function prettyJson(value: unknown): string {
@@ -37,7 +38,9 @@ interface ToolCardProps {
 export function ToolCard({ tool, part, onApprove, onDeny }: ToolCardProps) {
   const t = useTranslations("chat")
   const name = tool?.name ?? part.type.replace("tool-", "")
-  const needsApproval = part.state === "input-available" && tool?.approval === "always"
+  const needsApproval =
+    part.state === "input-available" && tool !== undefined && shouldRequireApproval(tool)
+  const toolUnavailable = part.state === "input-available" && tool === undefined
 
   return (
     <div className="rounded-lg border bg-muted/50 text-sm">
@@ -90,6 +93,10 @@ export function ToolCard({ tool, part, onApprove, onDeny }: ToolCardProps) {
               {t("deny")}
             </Button>
           </div>
+        )}
+
+        {toolUnavailable && (
+          <p className="pt-2 text-xs text-muted-foreground">{t("toolUnavailable")}</p>
         )}
       </div>
     </div>

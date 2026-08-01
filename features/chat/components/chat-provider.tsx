@@ -15,6 +15,7 @@ import { useChat } from "@ai-sdk/react"
 import { useChatStore } from "@/stores/chat-store"
 import { mergeTools, type ToolScopeRegistration } from "@/features/chat/lib/scopes"
 import { serializeTool } from "@/features/chat/lib/serialize"
+import { fetchApi } from "@/features/chat/lib/api"
 import { globalTools } from "@/features/chat/tools/global"
 import type { ChatSession, ChatTool, SerializedChatTool } from "@/features/chat/types"
 
@@ -50,16 +51,11 @@ export function useChatProvider() {
 }
 
 async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  })
-  if (!res.ok) {
-    if (res.status === 403) throw new Error("Forbidden")
-    if (res.status === 503) throw new Error("Disabled")
-    throw new Error(`Request failed (${res.status})`)
-  }
-  return res.json()
+  const res = await fetchApi<T>(url, init)
+  if (res.ok) return res.data
+  if (res.status === 403) throw new Error("Forbidden")
+  if (res.status === 503) throw new Error("Disabled")
+  throw new Error(`Request failed (${res.status})`)
 }
 
 function toolRegistryToSerialized(registry: ToolScopeRegistration[]): SerializedChatTool[] {

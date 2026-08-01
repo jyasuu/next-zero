@@ -310,6 +310,7 @@
     "awaitingApproval": "等待您的批准",
     "toolCompleted": "已完成",
     "toolFailed": "已拒绝",
-    "deniedMessage": "用户已拒绝请求的操作。"
+    "deniedMessage": "用户已拒绝请求的操作。",
+    "toolUnavailable": "该工具仅在开始此会话的页面上可用。"
 }
 }

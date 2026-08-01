@@ -1,7 +1,16 @@
+export type ToolPartState =
+  | "input-streaming"
+  | "input-available"
+  | "approval-requested"
+  | "approval-responded"
+  | "output-available"
+  | "output-error"
+  | "output-denied"
+
 export interface ToolPartLike {
   type: string
   toolCallId: string
-  state: string
+  state: ToolPartState
   input?: unknown
   output?: unknown
   errorText?: string
@@ -18,9 +27,9 @@ export function isToolPart(part: unknown): part is ToolPartLike {
   )
 }
 
-export function toolNameFromPart(part: ToolPartLike): string | null {
+export function toolNameFromPart(part: { type: string; toolName?: string }): string | null {
   if (part.type === "dynamic-tool") {
-    return (part as { toolName?: string }).toolName ?? null
+    return part.toolName ?? null
   }
   if (part.type.startsWith("tool-")) {
     return part.type.slice("tool-".length)

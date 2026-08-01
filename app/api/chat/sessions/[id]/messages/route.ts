@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import type { ChatMessageLike } from "@/features/chat/lib/sessions"
-import { auth } from "@/lib/auth"
-import { loadSessionMessages, replaceSessionMessages } from "@/features/chat/server/sessions"
+import { requireSession } from "@/features/chat/server/auth"
+import { loadSessionMessages, saveSessionMessages } from "@/features/chat/server/sessions"
 
 export const dynamic = "force-dynamic"
 
@@ -9,12 +9,10 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  const guard = await requireSession()
+  if (!guard.ok) return guard.response
   const { id } = await params
-  const messages = await loadSessionMessages(session.user.email ?? "", id)
+  const messages = await loadSessionMessages(guard.session.user.email ?? "", id)
   if (!messages) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
@@ -25,17 +23,15 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  const guard = await requireSession()
+  if (!guard.ok) return guard.response
   const body = await request.json().catch(() => null)
   if (!body?.messages) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 })
   }
   const { id } = await params
-  const updated = await replaceSessionMessages(
-    session.user.email ?? "",
+  const updated = await saveSessionMessages(
+    guard.session.user.email ?? "",
     id,
     body.messages as ChatMessageLike[]
   )

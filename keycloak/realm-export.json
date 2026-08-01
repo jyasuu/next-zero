@@ -60,23 +60,23 @@
     }
    ]
   },
-  {
-   "username": "editoruser",
-   "email": "editor@example.com",
-   "firstName": "Editor",
-   "lastName": "User",
-   "enabled": true,
-   "emailVerified": true,
-   "realmRoles": [
-    "editor"
-   ],
-   "credentials": [
-    {
-     "type": "password",
-     "value": "TestPass123!",
-     "temporary": false
-    }
-   ]
-  }
+   {
+    "username": "vieweruser",
+    "email": "viewer@example.com",
+    "firstName": "Viewer",
+    "lastName": "User",
+    "enabled": true,
+    "emailVerified": true,
+    "realmRoles": [
+     "viewer"
+    ],
+    "credentials": [
+     {
+      "type": "password",
+      "value": "TestPass123!",
+      "temporary": false
+     }
+    ]
+   }
  ]
 }

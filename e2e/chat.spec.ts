@@ -57,6 +57,12 @@ test.describe("Chat copilot", () => {
       await expect(page.locator("h1")).toHaveText("Chat")
       await ask(page, "Who am I?")
       await expect(page.getByText("The action was completed successfully.")).toBeVisible()
+
+      await page.getByRole("button", { name: "New chat" }).click()
+      await ask(page, "Create a user")
+      await expect(
+        page.getByText(/I have no tool available for that request/)
+      ).toBeVisible()
     })
 
     test("sessions persist, resume, and soft-delete", async ({ page }) => {
@@ -84,8 +90,8 @@ test.describe("Chat copilot", () => {
     })
   })
 
-  test.describe("editor", () => {
-    test.use({ storageState: "e2e/.auth/editor.json" })
+  test.describe("viewer", () => {
+    test.use({ storageState: "e2e/.auth/viewer.json" })
 
     test("approved write that exceeds grants is refused with a 403", async ({ page }) => {
       await page.goto("/users")

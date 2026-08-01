@@ -9,7 +9,7 @@ import {
 } from "ai"
 import type { ToolSet, UIMessage } from "ai"
 import { getChatModel } from "@/features/chat/server/model"
-import { buildSystemPrompt } from "@/features/chat/lib/prompts"
+import { buildSystemPrompt, type SystemPromptInput } from "@/features/chat/lib/prompts"
 import { uiMessagesToModelMessages } from "@/features/chat/lib/model-messages"
 import type { SerializedChatTool } from "@/features/chat/types"
 
@@ -24,22 +24,13 @@ export function chatToolSet(tools: SerializedChatTool[]): ToolSet {
   return toolSet
 }
 
-export interface ChatRequestContext {
-  email: string
-  roleName: string
-  isAdmin: boolean
-  granted: string[]
-  customPrompt: string
-}
-
 export function streamChatResponse(
-  context: ChatRequestContext,
-  messages: UIMessage[],
-  tools: SerializedChatTool[]
+  context: SystemPromptInput,
+  messages: UIMessage[]
 ): Response {
-  const system = buildSystemPrompt({ ...context, tools })
+  const system = buildSystemPrompt(context)
   const modelMessages = uiMessagesToModelMessages(messages)
-  const toolSet = chatToolSet(tools)
+  const toolSet = chatToolSet(context.tools)
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {

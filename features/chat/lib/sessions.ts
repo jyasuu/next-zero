@@ -15,15 +15,19 @@ export interface ChatMessageLike {
   parts: Array<{ type: string; text?: string }>
 }
 
+export function rowToSession(row: ChatSessionRow): ChatSession {
+  return {
+    id: row.id,
+    title: row.title ?? "",
+    createdAt: row.created_at ?? "",
+    updatedAt: row.updated_at ?? "",
+  }
+}
+
 export function filterActiveSessions(rows: ChatSessionRow[]): ChatSession[] {
   return rows
     .filter((row) => row.deleted_at === null)
-    .map((row) => ({
-      id: row.id,
-      title: row.title ?? "",
-      createdAt: row.created_at ?? "",
-      updatedAt: row.updated_at ?? "",
-    }))
+    .map(rowToSession)
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0))
 }
 

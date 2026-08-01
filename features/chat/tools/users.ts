@@ -1,21 +1,14 @@
 import { z } from "zod"
+import { fetchApi } from "@/features/chat/lib/api"
 import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
 
 async function fetchJson(url: string, init?: RequestInit): Promise<ToolExecutionResult> {
-  try {
-    const res = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } })
-    if (res.status === 403) {
-      return { ok: false, error: "Forbidden: your role does not grant this action." }
-    }
-    if (!res.ok) {
-      const body = await res.json().catch(() => null)
-      return { ok: false, error: body?.error ?? `Request failed (${res.status})` }
-    }
-    const data = await res.json()
-    return { ok: true, data }
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "Network error" }
+  const res = await fetchApi<unknown>(url, init)
+  if (res.ok) return { ok: true, data: res.data }
+  if (res.status === 403) {
+    return { ok: false, error: "Forbidden: your role does not grant this action." }
   }
+  return { ok: false, error: res.error }
 }
 
 export const usersTools: ChatTool[] = [

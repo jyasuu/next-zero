@@ -15,7 +15,7 @@ import {
   toolNameFromPart,
   type ToolPartLike,
 } from "@/features/chat/lib/parts"
-import { validateToolArgs } from "@/features/chat/lib/approval"
+import { validateToolArgs, shouldRequireApproval } from "@/features/chat/lib/approval"
 import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
 
 export function ChatPanel() {
@@ -79,7 +79,7 @@ export function ChatPanel() {
         const toolId = toolNameFromPart(part)
         if (!toolId || processedRef.current.has(part.toolCallId)) continue
         const tool = tools.find((x) => x.id === toolId)
-        if (!tool || tool.approval !== "auto") continue
+        if (!tool || shouldRequireApproval(tool)) continue
         processedRef.current.add(part.toolCallId)
         void executeTool(tool, part)
       }

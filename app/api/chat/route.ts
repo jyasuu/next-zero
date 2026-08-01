@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server"
 import type { UIMessage } from "ai"
-import { auth } from "@/lib/auth"
 import { isChatEnabled } from "@/features/chat/server/model"
 import { streamChatResponse } from "@/features/chat/server/chat"
+import { requireSession } from "@/features/chat/server/auth"
 import { getCustomPrompt } from "@/features/chat/server/settings"
 import { getRoleWithPolicies } from "@/lib/roles"
 import { listGrantedActions } from "@/features/chat/lib/prompts"
-import type { SerializedChatTool } from "@/features/chat/types"
 
 export const dynamic = "force-dynamic"
 
 export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-  }
+  const guard = await requireSession()
+  if (!guard.ok) return guard.response
+  const session = guard.session
   if (!isChatEnabled()) {
     return NextResponse.json({ error: "AI chat is disabled" }, { status: 503 })
   }
@@ -32,8 +30,7 @@ export async function POST(request: Request) {
   const customPrompt = await getCustomPrompt(session.user.email ?? "")
 
   return streamChatResponse(
-    { email: session.user.email ?? "", roleName, isAdmin, granted, customPrompt },
-    messages as UIMessage[],
-    tools as SerializedChatTool[]
+    { email: session.user.email ?? "", roleName, isAdmin, granted, customPrompt, tools },
+    messages as UIMessage[]
   )
 }

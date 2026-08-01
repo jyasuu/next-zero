@@ -12,6 +12,7 @@ const DB_PATH =
 const SQL_WASM_PATH = path.join(process.cwd(), "lib", "db", "sql-wasm.wasm")
 
 let db: Database | null = null
+let dbPromise: Promise<Database> | null = null
 
 const MIGRATIONS: string[] = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -54,6 +55,9 @@ const MIGRATIONS: string[] = [
     ('12', 'Leo Garcia', 'leo@example.com', 'Auditor', 'active', '2024-07-15');`,
 
   `UPDATE roles SET policies = '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read"]}]}]' WHERE name = 'Editor' AND policies NOT LIKE '%audit:Read%';`,
+
+  `-- grant users:Read to the Viewer role
+  UPDATE roles SET policies = '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","reports:Read"]}]}]' WHERE name = 'Viewer' AND policies NOT LIKE '%users:Read%';`,
 
   `CREATE TABLE IF NOT EXISTS chat_sessions (
     id TEXT PRIMARY KEY,
@@ -100,31 +104,41 @@ export function queryRow(db: Database, sql: string, params: (string | number | n
   return rows.length > 0 ? rows[0] : null
 }
 
-export async function getDb(): Promise<Database> {
-  if (db) return db
-  const SQL: SqlJsStatic = await initSqlJs({
-    wasmBinary: fs.readFileSync(SQL_WASM_PATH),
-  })
-  const dir = path.dirname(DB_PATH)
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+export function getDb(): Promise<Database> {
+  if (db) return Promise.resolve(db)
+  if (!dbPromise) {
+    dbPromise = (async () => {
+      const SQL: SqlJsStatic = await initSqlJs({
+        wasmBinary: fs.readFileSync(SQL_WASM_PATH),
+      })
+      const dir = path.dirname(DB_PATH)
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 
-  if (fs.existsSync(DB_PATH)) {
-    const buffer = fs.readFileSync(DB_PATH)
-    db = new SQL.Database(buffer)
-  } else {
-    db = new SQL.Database()
+      const next = fs.existsSync(DB_PATH)
+        ? new SQL.Database(fs.readFileSync(DB_PATH))
+        : new SQL.Database()
+
+      const hasMigrationsTable = queryAll(next, "SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'", []).length > 0
+      const runSet = new Set(
+        hasMigrationsTable
+          ? queryAll(next, "SELECT name FROM _migrations", []).map(r => r.name as string)
+          : []
+      )
+
+      for (const sql of MIGRATIONS) {
+        const name = sql.slice(0, 40)
+        if (runSet.has(name)) continue
+        next.run(sql)
+        next.run("INSERT INTO _migrations (name, run_at) VALUES (?, datetime('now'))", [name])
+      }
+
+      save(next)
+      db = next
+      return db
+    })()
+    dbPromise.catch(() => {
+      dbPromise = null
+    })
   }
-
-  const existing = queryAll(db, "SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'", [])
-  const runSet = new Set(existing.length > 0 ? existing.map(r => r.name as string) : [])
-
-  for (const sql of MIGRATIONS) {
-    const name = sql.slice(0, 40)
-    if (runSet.has(name)) continue
-    db.run(sql)
-    db.run("INSERT INTO _migrations (name, run_at) VALUES (?, datetime('now'))", [name])
-  }
-
-  save(db)
-  return db
+  return dbPromise
 }

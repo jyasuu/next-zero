@@ -1,8 +1,10 @@
 import { getDb, queryAll, queryRow, save } from "@/lib/db"
 import {
   filterActiveSessions,
+  rowToSession,
   seedTitleFromMessages,
   serializeParts,
+  sessionOwnedBy,
   type ChatMessageLike,
   type ChatSessionRow,
 } from "@/features/chat/lib/sessions"
@@ -10,15 +12,6 @@ import type { ChatSession } from "@/features/chat/types"
 
 function nowIso(): string {
   return new Date().toISOString()
-}
-
-function mapRow(row: ChatSessionRow): ChatSession {
-  return {
-    id: row.id,
-    title: row.title ?? "",
-    createdAt: row.created_at ?? "",
-    updatedAt: row.updated_at ?? "",
-  }
 }
 
 export async function listActiveSessions(email: string): Promise<ChatSession[]> {
@@ -40,7 +33,7 @@ export async function createSession(email: string): Promise<ChatSession> {
     [id, email, now, now]
   )
   save(db)
-  return mapRow({ id, user_email: email, title: "", created_at: now, updated_at: now, deleted_at: null })
+  return rowToSession({ id, user_email: email, title: "", created_at: now, updated_at: now, deleted_at: null })
 }
 
 export async function getOwnedSession(
@@ -51,7 +44,7 @@ export async function getOwnedSession(
   const row = queryRow(db, "SELECT * FROM chat_sessions WHERE id = ?", [id])
   if (!row) return null
   const session = row as unknown as ChatSessionRow
-  if (session.deleted_at !== null || session.user_email !== email) return null
+  if (session.deleted_at !== null || !sessionOwnedBy(session, email)) return null
   return session
 }
 
@@ -66,7 +59,7 @@ export async function softDeleteSession(email: string, id: string): Promise<bool
   return deleted
 }
 
-export async function replaceSessionMessages(
+export async function saveSessionMessages(
   email: string,
   id: string,
   messages: ChatMessageLike[]
@@ -84,16 +77,17 @@ export async function replaceSessionMessages(
     db.run("UPDATE chat_sessions SET updated_at = ? WHERE id = ?", [now, id])
   }
 
-  db.run("DELETE FROM chat_messages WHERE session_id = ?", [id])
   for (const message of messages) {
     db.run(
-      "INSERT INTO chat_messages (id, session_id, role, parts_json, created_at) VALUES (?, ?, ?, ?, ?)",
-      [crypto.randomUUID(), id, message.role, serializeParts(message.parts), now]
+      `INSERT INTO chat_messages (id, session_id, role, parts_json, created_at)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET session_id = excluded.session_id, role = excluded.role, parts_json = excluded.parts_json`,
+      [message.id ?? crypto.randomUUID(), id, message.role, serializeParts(message.parts), now]
     )
   }
   save(db)
 
-  return mapRow({
+  return rowToSession({
     ...session,
     title: title ?? session.title ?? "",
     updated_at: now,

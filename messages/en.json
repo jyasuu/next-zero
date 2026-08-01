@@ -310,6 +310,7 @@
     "awaitingApproval": "Awaiting your approval",
     "toolCompleted": "Completed",
     "toolFailed": "Refused",
-    "deniedMessage": "The user denied the requested action."
+    "deniedMessage": "The user denied the requested action.",
+    "toolUnavailable": "This tool is only available on the page where this conversation started."
   }
 }
