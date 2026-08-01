@@ -54,6 +54,28 @@ const MIGRATIONS: string[] = [
     ('12', 'Leo Garcia', 'leo@example.com', 'Auditor', 'active', '2024-07-15');`,
 
   `UPDATE roles SET policies = '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read"]}]}]' WHERE name = 'Editor' AND policies NOT LIKE '%audit:Read%';`,
+
+  `CREATE TABLE IF NOT EXISTS chat_sessions (
+    id TEXT PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    deleted_at TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_chat_sessions_user ON chat_sessions (user_email, updated_at);
+  CREATE TABLE IF NOT EXISTS chat_messages (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    role TEXT NOT NULL,
+    parts_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages (session_id);
+  CREATE TABLE IF NOT EXISTS user_settings (
+    user_email TEXT PRIMARY KEY,
+    custom_prompt TEXT NOT NULL DEFAULT ''
+  );`,
 ]
 
 export function save(database: Database) {

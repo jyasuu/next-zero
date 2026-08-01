@@ -19,6 +19,7 @@
   },
   "nav": {
     "dashboard": "仪表盘",
+    "chat": "聊天",
     "users": "用户管理",
     "auditLog": "审计日志",
     "apiKeys": "API 密钥",
@@ -126,7 +127,12 @@
     "changeAvatar": "更换头像",
     "profileUpdated": "资料已更新",
     "passwordUpdated": "密码已修改",
-    "passwordUpdatedDesc": "您的密码已成功更改。"
+    "passwordUpdatedDesc": "您的密码已成功更改。",
+    "customPrompt": "助手指令",
+    "customPromptDesc": "设置自定义提示词，在每次对话中引导助手行为",
+    "customPromptLabel": "自定义提示词",
+    "customPromptPlaceholder": "例如：始终用中文回复，并保持简洁。",
+    "customPromptSaved": "助手指令已保存"
   },
   "notifications": {
     "title": "通知中心",
@@ -282,6 +288,28 @@
     "backToDashboard": "返回仪表盘"
   },
   "sidebar": {
-    "collapse": "收起"
-  }
+    "collapse": "折叠"
+  },
+  "chat": {
+    "title": "聊天",
+    "description": "用自然语言提问或下达指令",
+    "toggle": "切换聊天窗口",
+    "selectSession": "选择一个会话",
+    "newChat": "新会话",
+    "untitled": "未命名",
+    "deleteSession": "删除会话",
+    "empty": "有什么可以帮您？",
+    "emptyHint": "提出问题，或指示助手使用当前页面的工具。",
+    "placeholder": "输入您的问题...",
+    "send": "发送消息",
+    "stop": "停止生成",
+    "requestError": "出错了，请重试。",
+    "disabled": "聊天功能未启用。请配置 AI_ENABLED 和 AI_API_KEY。",
+    "approve": "批准",
+    "deny": "拒绝",
+    "awaitingApproval": "等待您的批准",
+    "toolCompleted": "已完成",
+    "toolFailed": "已拒绝",
+    "deniedMessage": "用户已拒绝请求的操作。"
+}
 }

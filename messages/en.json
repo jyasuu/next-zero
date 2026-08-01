@@ -19,6 +19,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "chat": "Chat",
     "users": "Users",
     "auditLog": "Audit Log",
     "apiKeys": "API Keys",
@@ -126,7 +127,12 @@
     "changeAvatar": "Change Avatar",
     "profileUpdated": "Profile updated",
     "passwordUpdated": "Password updated",
-    "passwordUpdatedDesc": "Your password has been changed successfully."
+    "passwordUpdatedDesc": "Your password has been changed successfully.",
+    "customPrompt": "Assistant Instructions",
+    "customPromptDesc": "Set a custom prompt that steers the assistant's behavior in every conversation",
+    "customPromptLabel": "Custom prompt",
+    "customPromptPlaceholder": "e.g. Always reply in French and keep answers concise.",
+    "customPromptSaved": "Assistant instructions saved"
   },
   "notifications": {
     "title": "Notifications",
@@ -283,5 +289,27 @@
   },
   "sidebar": {
     "collapse": "Collapse"
+  },
+  "chat": {
+    "title": "Chat",
+    "description": "Ask questions or give instructions in natural language",
+    "toggle": "Toggle chat",
+    "selectSession": "Select a conversation",
+    "newChat": "New chat",
+    "untitled": "Untitled",
+    "deleteSession": "Delete conversation",
+    "empty": "How can I help you?",
+    "emptyHint": "Ask a question, or instruct the assistant to use a tool on this page.",
+    "placeholder": "Ask anything...",
+    "send": "Send message",
+    "stop": "Stop generating",
+    "requestError": "Something went wrong. Please try again.",
+    "disabled": "Chat is disabled. Configure AI_ENABLED and AI_API_KEY to enable it.",
+    "approve": "Approve",
+    "deny": "Deny",
+    "awaitingApproval": "Awaiting your approval",
+    "toolCompleted": "Completed",
+    "toolFailed": "Refused",
+    "deniedMessage": "The user denied the requested action."
   }
 }

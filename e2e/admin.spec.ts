@@ -9,6 +9,7 @@ test.describe("Server Admin - Block A: top permission", () => {
     const sidebar = page.locator("aside")
     for (const label of [
       "Dashboard",
+      "Chat",
       "Users",
       "Audit Log",
       "API Keys",

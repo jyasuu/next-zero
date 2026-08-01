@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials"
 import { getProviderConfigs } from "@/lib/auth-providers"
 import { getDb, queryRow, save } from "@/lib/db"
 import { mapRealmRoles } from "@/lib/role-mapping"
+import { realmRolesFromAccessToken } from "@/lib/realm-roles"
 import { isAdminLoginEnabled } from "@/lib/admin-login"
 
 const providerConfigs = getProviderConfigs()
@@ -96,10 +97,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           delete token.role
         } else {
           token.isAdmin = false
+          const realmRoles = realmRolesFromAccessToken(account?.access_token ?? "")
           token.role = await provisionRoleForEmail(
             user.name ?? "",
             user.email ?? "",
-            user.realmRoles ?? []
+            realmRoles.length > 0 ? realmRoles : (user.realmRoles ?? [])
           )
         }
       }

@@ -1,0 +1,99 @@
+import { z } from "zod"
+import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
+
+async function fetchJson(url: string, init?: RequestInit): Promise<ToolExecutionResult> {
+  try {
+    const res = await fetch(url, { ...init, headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) } })
+    if (res.status === 403) {
+      return { ok: false, error: "Forbidden: your role does not grant this action." }
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      return { ok: false, error: body?.error ?? `Request failed (${res.status})` }
+    }
+    const data = await res.json()
+    return { ok: true, data }
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Network error" }
+  }
+}
+
+export const usersTools: ChatTool[] = [
+  {
+    id: "users.list",
+    name: "List users",
+    description: "Lists all users in the workspace.",
+    inputSchema: z.object({}),
+    approval: "auto",
+    execute: async () => fetchJson("/api/users"),
+  },
+  {
+    id: "users.get",
+    name: "Get user",
+    description: "Returns a single user by id.",
+    inputSchema: z.object({ id: z.string().min(1, "id is required") }),
+    approval: "auto",
+    execute: async (args) => {
+      const { id } = args as { id: string }
+      return fetchJson(`/api/users/${encodeURIComponent(id)}`)
+    },
+  },
+  {
+    id: "users.create",
+    name: "Create user",
+    description: "Creates a new user with a name, email, role, and status.",
+    inputSchema: z.object({
+      name: z.string().min(1, "name is required"),
+      email: z.string().email("email must be a valid email"),
+      role: z.string().min(1, "role is required"),
+      status: z.enum(["active", "inactive"]).optional(),
+    }),
+    approval: "always",
+    execute: async (args) => {
+      const { name, email, role, status } = args as {
+        name: string
+        email: string
+        role: string
+        status?: string
+      }
+      return fetchJson("/api/users", { method: "POST", body: JSON.stringify({ name, email, role, status }) })
+    },
+  },
+  {
+    id: "users.update",
+    name: "Update user",
+    description: "Updates a user's name, email, role, or status by id.",
+    inputSchema: z.object({
+      id: z.string().min(1, "id is required"),
+      name: z.string().min(1, "name is required"),
+      email: z.string().email("email must be a valid email"),
+      role: z.string().min(1, "role is required"),
+      status: z.enum(["active", "inactive"]).optional(),
+    }),
+    approval: "always",
+    execute: async (args) => {
+      const { id, name, email, role, status } = args as {
+        id: string
+        name: string
+        email: string
+        role: string
+        status?: string
+      }
+      return fetchJson(`/api/users/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        body: JSON.stringify({ name, email, role, status }),
+      })
+    },
+  },
+  {
+    id: "users.delete",
+    name: "Delete user",
+    description: "Deletes a user by id.",
+    inputSchema: z.object({ id: z.string().min(1, "id is required") }),
+    approval: "always",
+    execute: async (args) => {
+      const { id } = args as { id: string }
+      return fetchJson(`/api/users/${encodeURIComponent(id)}`, { method: "DELETE" })
+    },
+  },
+]

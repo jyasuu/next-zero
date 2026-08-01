@@ -36,6 +36,8 @@ services:
       ROLE_MAPPING: '{"admin":"Admin","editor":"Editor","viewer":"Viewer"}'
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin
+      AI_ENABLED: "true"
+      AI_MOCK: "1"
     depends_on:
       keycloak:
         condition: service_healthy

@@ -15,6 +15,7 @@ import {
   Settings,
   User,
   Bell,
+  MessageSquare,
   ChevronLeft,
 } from "lucide-react"
 
@@ -37,6 +38,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Settings,
   User,
   Bell,
+  MessageSquare,
 }
 
 interface SidebarProps {

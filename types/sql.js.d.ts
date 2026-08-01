@@ -16,6 +16,7 @@ declare module "sql.js" {
     prepare(sql: string): Statement
     export(): Uint8Array
     close(): void
+    getRowsModified(): number
   }
   interface SqlJsStatic {
     Database: new (data?: ArrayLike<number> | Buffer | null) => Database

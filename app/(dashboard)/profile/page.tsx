@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -7,6 +8,7 @@ import { z } from "zod"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "@/hooks/use-toast"
@@ -48,6 +50,38 @@ export default function ProfilePage() {
   const onPasswordSubmit = (data: PasswordForm) => {
     toast({ title: t("passwordUpdated"), description: t("passwordUpdatedDesc") })
     passwordForm.reset()
+  }
+
+  const [customPrompt, setCustomPrompt] = useState("")
+  const [promptSaving, setPromptSaving] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.customPrompt === "string") {
+          setCustomPrompt(data.customPrompt)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const onSaveCustomPrompt = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPromptSaving(true)
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customPrompt }),
+      })
+      if (!res.ok) throw new Error()
+      toast({ title: t("customPromptSaved") })
+    } catch {
+      toast({ title: t("common.error") })
+    } finally {
+      setPromptSaving(false)
+    }
   }
 
   return (
@@ -95,6 +129,28 @@ export default function ProfilePage() {
               )}
             </div>
             <Button type="submit">{t("saveChanges")}</Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("customPrompt")}</CardTitle>
+          <CardDescription>{t("customPromptDesc")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={onSaveCustomPrompt} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="customPrompt">{t("customPromptLabel")}</Label>
+              <Textarea
+                id="customPrompt"
+                rows={5}
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder={t("customPromptPlaceholder")}
+              />
+            </div>
+            <Button type="submit" disabled={promptSaving}>{t("saveChanges")}</Button>
           </form>
         </CardContent>
       </Card>

@@ -7,6 +7,8 @@ import { mainNavItems, settingsNavItems } from "@/lib/constants"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ChatProvider } from "@/features/chat/components/chat-provider"
+import { ChatWidget } from "@/features/chat/components/chat-widget"
 
 const routeActions: Record<string, string> = Object.fromEntries(
   [...mainNavItems, ...settingsNavItems]
@@ -35,6 +37,13 @@ export default async function DashboardLayout({
 
   return (
     <TooltipProvider delayDuration={0}>
+    <ChatProvider
+      claims={{
+        email: session.user.email ?? "",
+        role: session.user.role ?? "",
+        isAdmin,
+      }}
+    >
     <div className="flex h-screen overflow-hidden">
       <Sidebar role={role} isAdmin={isAdmin} />
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -42,6 +51,8 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
+    <ChatWidget />
+    </ChatProvider>
     </TooltipProvider>
   )
 }
