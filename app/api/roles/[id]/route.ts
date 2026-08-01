@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getDb, queryRow, queryAll, save } from "@/lib/db"
+import { queryRow, run } from "@/lib/db"
 import { requireApiAction } from "@/lib/api-acl"
 import { evictRoleFromCache } from "@/lib/roles"
 
@@ -16,8 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!authResult.ok) return authResult.response
 
   const { id } = await params
-  const db = await getDb()
-  const row = queryRow(db, "SELECT * FROM roles WHERE id = ?", [id])
+  const row = await queryRow("SELECT * FROM roles WHERE id = $1", [id])
   if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 })
   return NextResponse.json(parseRole(row))
 }
@@ -28,17 +27,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await request.json()
-  const db = await getDb()
-  const existing = queryRow(db, "SELECT * FROM roles WHERE id = ?", [id])
+  const existing = await queryRow("SELECT * FROM roles WHERE id = $1", [id])
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
   const permissions = JSON.stringify(body.permissions || [])
   const policies = JSON.stringify(body.policies || [])
-  db.run("UPDATE roles SET name = ?, description = ?, permissions = ?, policies = ? WHERE id = ?",
-    [body.name, body.description, permissions, policies, id])
-  save(db)
+  await run(
+    "UPDATE roles SET name = $1, description = $2, permissions = $3, policies = $4 WHERE id = $5",
+    [body.name, body.description, permissions, policies, id]
+  )
   evictRoleFromCache(existing.name as string)
   evictRoleFromCache(body.name as string)
-  return NextResponse.json(parseRole(queryRow(db, "SELECT * FROM roles WHERE id = ?", [id])!))
+  return NextResponse.json(parseRole((await queryRow("SELECT * FROM roles WHERE id = $1", [id]))!))
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -46,11 +45,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!authResult.ok) return authResult.response
 
   const { id } = await params
-  const db = await getDb()
-  const existing = queryRow(db, "SELECT * FROM roles WHERE id = ?", [id])
+  const existing = await queryRow("SELECT * FROM roles WHERE id = $1", [id])
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  db.run("DELETE FROM roles WHERE id = ?", [id])
-  save(db)
+  await run("DELETE FROM roles WHERE id = $1", [id])
   evictRoleFromCache(existing.name as string)
   return NextResponse.json({ success: true })
 }

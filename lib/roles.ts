@@ -1,4 +1,4 @@
-import { getDb, queryRow } from "@/lib/db"
+import { queryRow } from "@/lib/db"
 import type { Policy, RolePolicies } from "@/lib/acl"
 import { createRoleCache } from "@/lib/role-cache"
 
@@ -10,8 +10,7 @@ export async function getRoleWithPolicies(name: string): Promise<RolePolicies | 
   const cached = cache.get(name)
   if (cached) return cached
 
-  const db = await getDb()
-  const row = queryRow(db, "SELECT permissions, policies FROM roles WHERE name = ?", [name])
+  const row = await queryRow("SELECT permissions, policies FROM roles WHERE name = $1", [name])
   if (!row) return null
 
   const role: RolePolicies = {

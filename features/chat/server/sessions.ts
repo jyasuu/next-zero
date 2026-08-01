@@ -1,4 +1,4 @@
-import { getDb, queryAll, queryRow, save } from "@/lib/db"
+import { queryAll, queryRow, run } from "@/lib/db"
 import {
   filterActiveSessions,
   rowToSession,
@@ -15,24 +15,20 @@ function nowIso(): string {
 }
 
 export async function listActiveSessions(email: string): Promise<ChatSession[]> {
-  const db = await getDb()
-  const rows = queryAll(
-    db,
-    "SELECT id, user_email, title, created_at, updated_at, deleted_at FROM chat_sessions WHERE user_email = ? ORDER BY updated_at DESC",
+  const rows = await queryAll(
+    "SELECT id, user_email, title, created_at, updated_at, deleted_at FROM chat_sessions WHERE user_email = $1 ORDER BY updated_at DESC",
     [email]
   )
   return filterActiveSessions(rows as unknown as ChatSessionRow[])
 }
 
 export async function createSession(email: string): Promise<ChatSession> {
-  const db = await getDb()
   const id = crypto.randomUUID()
   const now = nowIso()
-  db.run(
-    "INSERT INTO chat_sessions (id, user_email, title, created_at, updated_at, deleted_at) VALUES (?, ?, '', ?, ?, NULL)",
+  await run(
+    "INSERT INTO chat_sessions (id, user_email, title, created_at, updated_at, deleted_at) VALUES ($1, $2, '', $3, $4, NULL)",
     [id, email, now, now]
   )
-  save(db)
   return rowToSession({ id, user_email: email, title: "", created_at: now, updated_at: now, deleted_at: null })
 }
 
@@ -40,8 +36,7 @@ export async function getOwnedSession(
   email: string,
   id: string
 ): Promise<ChatSessionRow | null> {
-  const db = await getDb()
-  const row = queryRow(db, "SELECT * FROM chat_sessions WHERE id = ?", [id])
+  const row = await queryRow("SELECT * FROM chat_sessions WHERE id = $1", [id])
   if (!row) return null
   const session = row as unknown as ChatSessionRow
   if (session.deleted_at !== null || !sessionOwnedBy(session, email)) return null
@@ -49,14 +44,11 @@ export async function getOwnedSession(
 }
 
 export async function softDeleteSession(email: string, id: string): Promise<boolean> {
-  const db = await getDb()
-  db.run(
-    "UPDATE chat_sessions SET deleted_at = ?, updated_at = ? WHERE id = ? AND user_email = ? AND deleted_at IS NULL",
+  const result = await run(
+    "UPDATE chat_sessions SET deleted_at = $1, updated_at = $2 WHERE id = $3 AND user_email = $4 AND deleted_at IS NULL",
     [nowIso(), nowIso(), id, email]
   )
-  const deleted = db.getRowsModified() > 0
-  save(db)
-  return deleted
+  return result.rowCount > 0
 }
 
 export async function saveSessionMessages(
@@ -67,25 +59,23 @@ export async function saveSessionMessages(
   const session = await getOwnedSession(email, id)
   if (!session) return null
 
-  const db = await getDb()
   const now = nowIso()
 
   const title = seedTitleFromMessages(messages)
   if (title && !session.title) {
-    db.run("UPDATE chat_sessions SET title = ?, updated_at = ? WHERE id = ?", [title, now, id])
+    await run("UPDATE chat_sessions SET title = $1, updated_at = $2 WHERE id = $3", [title, now, id])
   } else {
-    db.run("UPDATE chat_sessions SET updated_at = ? WHERE id = ?", [now, id])
+    await run("UPDATE chat_sessions SET updated_at = $1 WHERE id = $2", [now, id])
   }
 
   for (const message of messages) {
-    db.run(
+    await run(
       `INSERT INTO chat_messages (id, session_id, role, parts_json, created_at)
-       VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET session_id = excluded.session_id, role = excluded.role, parts_json = excluded.parts_json`,
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (id) DO UPDATE SET session_id = EXCLUDED.session_id, role = EXCLUDED.role, parts_json = EXCLUDED.parts_json`,
       [message.id ?? crypto.randomUUID(), id, message.role, serializeParts(message.parts), now]
     )
   }
-  save(db)
 
   return rowToSession({
     ...session,
@@ -100,8 +90,10 @@ export async function loadSessionMessages(
 ): Promise<ChatMessageLike[] | null> {
   const session = await getOwnedSession(email, id)
   if (!session) return null
-  const db = await getDb()
-  const rows = queryAll(db, "SELECT * FROM chat_messages WHERE session_id = ? ORDER BY created_at ASC", [id])
+  const rows = await queryAll(
+    "SELECT * FROM chat_messages WHERE session_id = $1 ORDER BY created_at ASC",
+    [id]
+  )
   return rows.map((row) => ({
     role: row.role as string,
     id: row.id as string,

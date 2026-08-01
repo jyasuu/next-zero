@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: next_zero
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d next_zero"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      default:
+        aliases:
+          - postgres.local
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.0
     ports:
@@ -36,10 +54,13 @@ services:
       ROLE_MAPPING: '{"admin":"Admin","editor":"Editor","viewer":"Viewer"}'
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin
+      DATABASE_URL: postgres://postgres:postgres@postgres.local:5432/next_zero
       AI_ENABLED: "true"
       AI_MOCK: "1"
     depends_on:
       keycloak:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     restart: unless-stopped
     networks:

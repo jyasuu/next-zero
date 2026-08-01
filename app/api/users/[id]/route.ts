@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getDb, queryRow, queryAll, save } from "@/lib/db"
+import { queryRow, run } from "@/lib/db"
 import { requireApiAction } from "@/lib/api-acl"
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -7,8 +7,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!authResult.ok) return authResult.response
 
   const { id } = await params
-  const db = await getDb()
-  const user = queryRow(db, "SELECT * FROM users WHERE id = ?", [id])
+  const user = await queryRow("SELECT * FROM users WHERE id = $1", [id])
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 })
   return NextResponse.json(user)
 }
@@ -19,13 +18,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
   const { id } = await params
   const body = await request.json()
-  const db = await getDb()
-  const existing = queryRow(db, "SELECT * FROM users WHERE id = ?", [id])
+  const existing = await queryRow("SELECT * FROM users WHERE id = $1", [id])
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  db.run("UPDATE users SET name = ?, email = ?, role = ?, status = ? WHERE id = ?",
-    [body.name, body.email, body.role, body.status, id])
-  save(db)
-  return NextResponse.json(queryRow(db, "SELECT * FROM users WHERE id = ?", [id]))
+  await run(
+    "UPDATE users SET name = $1, email = $2, role = $3, status = $4 WHERE id = $5",
+    [body.name, body.email, body.role, body.status, id]
+  )
+  return NextResponse.json(await queryRow("SELECT * FROM users WHERE id = $1", [id]))
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -33,10 +32,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   if (!authResult.ok) return authResult.response
 
   const { id } = await params
-  const db = await getDb()
-  const existing = queryRow(db, "SELECT * FROM users WHERE id = ?", [id])
+  const existing = await queryRow("SELECT * FROM users WHERE id = $1", [id])
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  db.run("DELETE FROM users WHERE id = ?", [id])
-  save(db)
+  await run("DELETE FROM users WHERE id = $1", [id])
   return NextResponse.json({ success: true })
 }

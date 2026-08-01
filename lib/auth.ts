@@ -3,7 +3,7 @@ import GitHub from "next-auth/providers/github"
 import Keycloak from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 import { getProviderConfigs } from "@/lib/auth-providers"
-import { getDb, queryRow, save } from "@/lib/db"
+import { queryRow, run } from "@/lib/db"
 import { mapRealmRoles } from "@/lib/role-mapping"
 import { realmRolesFromAccessToken } from "@/lib/realm-roles"
 import { isAdminLoginEnabled } from "@/lib/admin-login"
@@ -65,19 +65,17 @@ async function provisionRoleForEmail(
   email: string,
   realmRoles: string[]
 ): Promise<string> {
-  const db = await getDb()
-  const existing = queryRow(db, "SELECT role FROM users WHERE email = ?", [email])
+  const existing = await queryRow("SELECT role FROM users WHERE email = $1", [email])
   if (existing) {
     return (existing.role as string) ?? ""
   }
 
   const role = mapRealmRoles(realmRoles, process.env.ROLE_MAPPING)
   const createdAt = new Date().toISOString().split("T")[0]
-  db.run(
-    "INSERT INTO users (id, name, email, role, status, created_at) VALUES (?, ?, ?, ?, 'active', ?)",
+  await run(
+    "INSERT INTO users (id, name, email, role, status, created_at) VALUES ($1, $2, $3, $4, 'active', $5)",
     [String(Date.now()), name || email, email, role ?? "", createdAt]
   )
-  save(db)
   return role ?? ""
 }
 
