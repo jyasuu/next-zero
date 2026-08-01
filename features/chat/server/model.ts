@@ -6,9 +6,7 @@ const DEFAULT_BASE_URL = "https://opencode.ai/zen/v1"
 const DEFAULT_MODEL = "big-pickle"
 
 export function isChatEnabled(): boolean {
-  if (process.env.AI_ENABLED !== "true") return false
-  if (process.env.AI_MOCK === "1") return true
-  return Boolean(process.env.AI_API_KEY)
+  return process.env.AI_ENABLED === "true"
 }
 
 export function getChatModel(): LanguageModel {
