@@ -13,7 +13,7 @@ async function fetchJson(url: string, init?: RequestInit): Promise<ToolExecution
 
 export const usersTools: ChatTool[] = [
   {
-    id: "users.list",
+    id: "users_list",
     name: "List users",
     description: "Lists all users in the workspace.",
     inputSchema: z.object({}),
@@ -21,7 +21,7 @@ export const usersTools: ChatTool[] = [
     execute: async () => fetchJson("/api/users"),
   },
   {
-    id: "users.get",
+    id: "users_get",
     name: "Get user",
     description: "Returns a single user by id.",
     inputSchema: z.object({ id: z.string().min(1, "id is required") }),
@@ -32,7 +32,7 @@ export const usersTools: ChatTool[] = [
     },
   },
   {
-    id: "users.create",
+    id: "users_create",
     name: "Create user",
     description: "Creates a new user with a name, email, role, and status.",
     inputSchema: z.object({
@@ -53,7 +53,7 @@ export const usersTools: ChatTool[] = [
     },
   },
   {
-    id: "users.update",
+    id: "users_update",
     name: "Update user",
     description: "Updates a user's name, email, role, or status by id.",
     inputSchema: z.object({
@@ -79,7 +79,7 @@ export const usersTools: ChatTool[] = [
     },
   },
   {
-    id: "users.delete",
+    id: "users_delete",
     name: "Delete user",
     description: "Deletes a user by id.",
     inputSchema: z.object({ id: z.string().min(1, "id is required") }),

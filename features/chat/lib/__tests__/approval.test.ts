@@ -5,7 +5,7 @@ import type { ChatTool } from "@/features/chat/types"
 
 function makeTool(approval: "always" | "auto"): ChatTool {
   return {
-    id: "users.create",
+    id: "users_create",
     name: "Create user",
     description: "Creates a user",
     inputSchema: z.object({

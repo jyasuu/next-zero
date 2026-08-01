@@ -6,7 +6,7 @@ const whoamiSchema = z.object({})
 
 export const globalTools: ChatTool[] = [
   {
-    id: "account.whoami",
+    id: "account_whoami",
     name: "Who am I",
     description:
       "Reports the signed-in user's identity, role, and whether they are an administrator. Use this to answer questions about the caller's own access.",

@@ -5,7 +5,7 @@ import type { LanguageModelV4CallOptions, LanguageModelV4FunctionTool, LanguageM
 
 const usersCreateTool: LanguageModelV4FunctionTool = {
   type: "function",
-  name: "users.create",
+  name: "users_create",
   description: "Creates a new user",
   inputSchema: {
     type: "object",
@@ -22,7 +22,7 @@ const usersCreateTool: LanguageModelV4FunctionTool = {
 
 const usersDeleteTool: LanguageModelV4FunctionTool = {
   type: "function",
-  name: "users.delete",
+  name: "users_delete",
   description: "Deletes a user",
   inputSchema: {
     type: "object",
@@ -33,7 +33,7 @@ const usersDeleteTool: LanguageModelV4FunctionTool = {
 
 const usersListTool: LanguageModelV4FunctionTool = {
   type: "function",
-  name: "users.list",
+  name: "users_list",
   description: "Lists users",
   inputSchema: {
     type: "object",
@@ -44,7 +44,7 @@ const usersListTool: LanguageModelV4FunctionTool = {
 
 const accountAccessTool: LanguageModelV4FunctionTool = {
   type: "function",
-  name: "account.access",
+  name: "account_access",
   description: "Reports the caller's access",
   inputSchema: { type: "object", properties: {}, required: [] },
 }
@@ -59,11 +59,11 @@ function continuationTurn(kind: "json" | "error", value: unknown = { ok: true })
     {
       role: "assistant",
       content: [
-        { type: "tool-call", toolCallId: "call_1", toolName: "users.create", input: "{}" },
+        { type: "tool-call", toolCallId: "call_1", toolName: "users_create", input: "{}" },
         {
           type: "tool-result",
           toolCallId: "call_1",
-          toolName: "users.create",
+          toolName: "users_create",
           output:
             kind === "json"
               ? { type: "json", value: value as JSONValue }
@@ -96,19 +96,19 @@ async function collect(model: ReturnType<typeof createMockModel>, options: Parti
 
 describe("pickToolIntent", () => {
   it("prefers a create tool for create intents", () => {
-    expect(pickToolIntent("Create a new user named Ada", [usersListTool, usersCreateTool, usersDeleteTool])).toBe("users.create")
+    expect(pickToolIntent("Create a new user named Ada", [usersListTool, usersCreateTool, usersDeleteTool])).toBe("users_create")
   })
 
   it("prefers a delete tool for delete intents", () => {
-    expect(pickToolIntent("Delete the user", [usersListTool, usersCreateTool, usersDeleteTool])).toBe("users.delete")
+    expect(pickToolIntent("Delete the user", [usersListTool, usersCreateTool, usersDeleteTool])).toBe("users_delete")
   })
 
   it("prefers a list tool for read intents", () => {
-    expect(pickToolIntent("List all users", [usersListTool, usersCreateTool])).toBe("users.list")
+    expect(pickToolIntent("List all users", [usersListTool, usersCreateTool])).toBe("users_list")
   })
 
   it("falls back to the first tool for a read intent with no read tool", () => {
-    expect(pickToolIntent("Show me the user directory", [usersCreateTool, usersDeleteTool])).toBe("users.create")
+    expect(pickToolIntent("Show me the user directory", [usersCreateTool, usersDeleteTool])).toBe("users_create")
   })
 
   it("returns null when no tools are available", () => {
@@ -124,7 +124,7 @@ describe("pickToolIntent", () => {
   })
 
   it("picks an identity tool for identity questions", () => {
-    expect(pickToolIntent("Who am I?", [usersListTool, accountAccessTool])).toBe("account.access")
+    expect(pickToolIntent("Who am I?", [usersListTool, accountAccessTool])).toBe("account_access")
   })
 })
 
@@ -158,7 +158,7 @@ describe("createMockModel doStream", () => {
     const toolCall = parts.find((p) => p.type === "tool-call")
     expect(toolCall).toBeDefined()
     if (toolCall && toolCall.type === "tool-call") {
-      expect(toolCall.toolName).toBe("users.create")
+      expect(toolCall.toolName).toBe("users_create")
       expect(JSON.parse(toolCall.input)).toEqual({
         name: "Mock User",
         email: "mock@example.com",

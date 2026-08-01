@@ -15,9 +15,9 @@ const assistantText = (text: string): UIMessage => ({
 })
 
 const toolPart = (overrides: Record<string, unknown>) => ({
-  type: "tool-users.create",
+  type: "tool-users_create",
   toolCallId: "call_1",
-  toolName: "users.create",
+  toolName: "users_create",
   input: { name: "Ada", email: "ada@example.com" },
   ...overrides,
 })
@@ -58,7 +58,7 @@ describe("uiMessagesToModelMessages", () => {
           {
             type: "tool-call",
             toolCallId: "call_1",
-            toolName: "users.create",
+            toolName: "users_create",
             input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
           },
         ],
@@ -86,14 +86,14 @@ describe("uiMessagesToModelMessages", () => {
           {
             type: "tool-call",
             toolCallId: "call_1",
-            toolName: "users.create",
+            toolName: "users_create",
             input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
             providerExecuted: true,
           },
           {
             type: "tool-result",
             toolCallId: "call_1",
-            toolName: "users.create",
+            toolName: "users_create",
             output: { type: "json", value: { ok: true, data: { id: "99" } } },
           },
         ],
@@ -122,14 +122,14 @@ describe("uiMessagesToModelMessages", () => {
           {
             type: "tool-call",
             toolCallId: "call_1",
-            toolName: "users.create",
+            toolName: "users_create",
             input: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
             providerExecuted: true,
           },
           {
             type: "tool-result",
             toolCallId: "call_1",
-            toolName: "users.create",
+            toolName: "users_create",
             output: { type: "error-text", value: "User denied this tool call." },
           },
         ],

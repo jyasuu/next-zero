@@ -56,19 +56,24 @@ export function pickToolIntent(
   if (tools.length === 0) return null
   const intent = intentOf(text)
   if (intent === "create") {
-    const tool = tools.find((t) => t.name.includes("create") || t.name.includes(".add"))
+    const tool = tools.find((t) => t.name.includes("create") || t.name.includes(".add") || t.name.includes("_add"))
     if (tool) return tool.name
   }
   if (intent === "delete") {
-    const tool = tools.find((t) => t.name.includes("delete") || t.name.includes(".remove"))
+    const tool = tools.find((t) => t.name.includes("delete") || t.name.includes(".remove") || t.name.includes("_remove"))
     if (tool) return tool.name
   }
   if (intent === "update") {
-    const tool = tools.find((t) => t.name.includes("update") || t.name.includes(".edit"))
+    const tool = tools.find((t) => t.name.includes("update") || t.name.includes(".edit") || t.name.includes("_edit"))
     if (tool) return tool.name
   }
   if (intent === "read") {
-    const tool = tools.find((t) => t.name.includes("list") || t.name.includes(".read") || t.name.includes(".get"))
+    const tool = tools.find(
+      (t) =>
+        t.name.includes("list") ||
+        t.name.includes(".read") || t.name.includes("_read") ||
+        t.name.includes(".get") || t.name.includes("_get")
+    )
     if (tool) return tool.name
     return tools[0].name
   }

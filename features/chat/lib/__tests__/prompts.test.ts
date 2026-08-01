@@ -40,7 +40,7 @@ const viewerRole: RolePolicies = {
 }
 
 const listUsersTool: SerializedChatTool = {
-  id: "users.list",
+  id: "users_list",
   name: "List users",
   description: "Lists all users in the workspace",
   inputSchema: {},
@@ -48,7 +48,7 @@ const listUsersTool: SerializedChatTool = {
 }
 
 const createUserTool: SerializedChatTool = {
-  id: "users.create",
+  id: "users_create",
   name: "Create user",
   description: "Creates a new user",
   inputSchema: {},
@@ -105,9 +105,9 @@ describe("buildSystemPrompt", () => {
 
   it("describes every active tool with id, name and approval policy", () => {
     const prompt = buildSystemPrompt(base)
-    expect(prompt).toContain("users.list")
+    expect(prompt).toContain("users_list")
     expect(prompt).toContain("List users")
-    expect(prompt).toContain("users.create")
+    expect(prompt).toContain("users_create")
     expect(prompt).toContain("Create user")
     expect(prompt).toContain("auto")
     expect(prompt).toContain("always")

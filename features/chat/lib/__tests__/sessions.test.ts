@@ -104,7 +104,7 @@ describe("serializeParts / deserializeParts", () => {
     {
       type: "tool-input",
       toolCallId: "call_1",
-      toolName: "users.create",
+      toolName: "users_create",
       input: { name: "Ada", email: "ada@example.com" },
       state: "output-available",
       output: { ok: true, data: { id: "99" } },
