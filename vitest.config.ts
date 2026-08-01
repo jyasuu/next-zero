@@ -8,6 +8,9 @@ export default defineConfig({
     globals: true,
     setupFiles: [],
   },
+  esbuild: {
+    jsx: "automatic",
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "."),

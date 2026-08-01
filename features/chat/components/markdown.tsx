@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { Check, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -29,6 +30,7 @@ export function Markdown({ text }: { text: string }) {
   return (
     <div className="space-y-2">
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           a: ({ ...props }) => <a {...props} className="text-primary underline" target="_blank" rel="noreferrer" />,
           p: ({ children }) => <p className="text-sm leading-relaxed">{children}</p>,
