@@ -1,4 +1,4 @@
-import type { z } from "zod"
+import { z } from "zod"
 
 export type ToolApprovalPolicy = "always" | "auto"
 
@@ -29,3 +29,34 @@ export interface SerializedChatTool {
   inputSchema: Record<string, unknown>
   approval: ToolApprovalPolicy
 }
+
+export const whoamiOutputSchema = z.object({
+  email: z.string(),
+  role: z.string(),
+  isAdmin: z.boolean(),
+})
+
+export const userRowOutputSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+  role: z.string(),
+  status: z.string(),
+  created_at: z.string(),
+})
+
+export const usersListOutputSchema = z.array(userRowOutputSchema)
+export const deletedOutputSchema = z.object({ success: z.literal(true) })
+
+export type UserRow = z.infer<typeof userRowOutputSchema>
+export type WhoAmIOutput = z.infer<typeof whoamiOutputSchema>
+
+export type KnownToolOutput =
+  | { tool: "account_whoami"; output: WhoAmIOutput }
+  | { tool: "users_list"; output: z.infer<typeof usersListOutputSchema> }
+  | { tool: "users_get"; output: UserRow }
+  | { tool: "users_create"; output: UserRow }
+  | { tool: "users_update"; output: UserRow }
+  | { tool: "users_delete"; output: z.infer<typeof deletedOutputSchema> }
+
+export type ToolId = KnownToolOutput["tool"]

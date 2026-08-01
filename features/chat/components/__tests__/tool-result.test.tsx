@@ -100,4 +100,23 @@ describe("ToolResult", () => {
       expect(container.textContent).toBe("")
     })
   })
+
+  describe("defensive fallback for known tools", () => {
+    it("falls back to the generic view when a known tool's output does not match", () => {
+      render(<ToolResult toolId="users_get" output="oops" />)
+      expect(screen.getByText("oops")).not.toBeNull()
+    })
+
+    it("renders no raw JSON and does not crash on a malformed known-tool output", () => {
+      const { container } = render(<ToolResult toolId="account_whoami" output={{ email: "x@y.z" }} />)
+      expect(container.textContent).not.toContain('"email"')
+      expect(container.textContent).not.toContain('"isAdmin"')
+    })
+
+    it("falls back when a delete result is missing its success flag", () => {
+      const { container } = render(<ToolResult toolId="users_delete" output={{ done: true }} />)
+      expect(screen.queryByText("User deleted.")).toBeNull()
+      expect(container.textContent).toContain("Done")
+    })
+  })
 })

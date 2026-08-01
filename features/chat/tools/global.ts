@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { useChatStore } from "@/stores/chat-store"
-import type { ChatTool } from "@/features/chat/types"
+import type { ChatTool, WhoAmIOutput } from "@/features/chat/types"
 
 const whoamiSchema = z.object({})
 
@@ -17,10 +17,12 @@ export const globalTools: ChatTool[] = [
       if (!claims?.email) {
         return { ok: false, error: "The caller's identity is unavailable." }
       }
-      return {
-        ok: true,
-        data: { email: claims.email, role: claims.role, isAdmin: claims.isAdmin },
+      const output: WhoAmIOutput = {
+        email: claims.email,
+        role: claims.role,
+        isAdmin: claims.isAdmin,
       }
+      return { ok: true, data: output }
     },
   },
 ]

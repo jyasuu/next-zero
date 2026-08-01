@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import { z } from "zod"
 import { CheckCircle2, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -12,27 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
-const LABELS: Record<string, string> = {
-  id: "ID",
-  name: "Name",
-  email: "Email",
-  role: "Role",
-  status: "Status",
-  isAdmin: "Administrator",
-  created_at: "Created",
-}
-
-function titleCase(key: string): string {
-  return key
-    .replace(/[_-]+/g, " ")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/^./, (c) => c.toUpperCase())
-}
-
-function labelOf(key: string): string {
-  return LABELS[key] ?? titleCase(key)
-}
+import {
+  formatValue,
+  isPlainObject,
+  keyValueGrid,
+  labelOf,
+  statusBadge,
+  type RowLike,
+} from "@/features/chat/components/format"
+import {
+  deletedOutputSchema,
+  userRowOutputSchema,
+  usersListOutputSchema,
+  whoamiOutputSchema,
+  type ToolId,
+  type UserRow,
+  type WhoAmIOutput,
+} from "@/features/chat/types"
 
 function unwrapData(output: unknown): unknown {
   if (
@@ -46,36 +43,8 @@ function unwrapData(output: unknown): unknown {
   return output
 }
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-}
-
-function statusBadge(status: unknown): ReactNode {
-  const value = String(status ?? "").toLowerCase()
-  return (
-    <Badge variant={value === "active" ? "success" : "secondary"} className="capitalize">
-      {value || "—"}
-    </Badge>
-  )
-}
-
-function booleanBadge(value: boolean): ReactNode {
-  return value ? (
-    <Badge variant="success">Yes</Badge>
-  ) : (
-    <Badge variant="secondary">No</Badge>
-  )
-}
-
-function formatValue(value: unknown, key?: string): ReactNode {
-  if (value === null || value === undefined) return <span className="text-muted-foreground">—</span>
-  if (typeof value === "boolean") return booleanBadge(value)
-  if (key === "status") return statusBadge(value)
-  return String(value)
-}
-
-function initialsOf(email: string): string {
-  const local = email.split("@")[0] ?? email
+function initialsOf(value: string): string {
+  const local = value.split("@")[0] ?? value
   return local
     .replace(/[^a-zA-Z0-9 ._-]/g, "")
     .split(/[ ._\-]+/)
@@ -83,25 +52,6 @@ function initialsOf(email: string): string {
     .slice(0, 2)
     .map((word) => word[0]?.toUpperCase())
     .join("")
-}
-
-interface RowLike {
-  [key: string]: unknown
-}
-
-function keyValueGrid(record: RowLike): ReactNode {
-  const entries = Object.entries(record)
-  if (entries.length === 0) return null
-  return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
-      {entries.map(([key, value]) => (
-        <div key={key} className="contents">
-          <dt className="text-muted-foreground">{labelOf(key)}</dt>
-          <dd className="font-medium">{formatValue(value, key)}</dd>
-        </div>
-      ))}
-    </dl>
-  )
 }
 
 function autoTable(rows: RowLike[]): ReactNode {
@@ -135,39 +85,64 @@ function autoTable(rows: RowLike[]): ReactNode {
   )
 }
 
-function WhoAmIView({ output }: { output: unknown }) {
-  const email = isPlainObject(output) ? String(output.email ?? "") : ""
-  const role = isPlainObject(output) ? String(output.role ?? "") : ""
-  const isAdmin = isPlainObject(output) ? Boolean(output.isAdmin) : false
+function WhoAmIView({ output }: { output: WhoAmIOutput }) {
   return (
     <div className="flex items-center gap-3 rounded-md border bg-background p-3">
       <Avatar className="h-10 w-10">
         <AvatarFallback className="bg-primary/10 text-primary">
-          {email ? initialsOf(email) : <UserRound className="h-5 w-5" />}
+          {output.email ? initialsOf(output.email) : <UserRound className="h-5 w-5" />}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-wrap items-center gap-2">
-        {email && <span className="font-medium">{email}</span>}
-        {role && <Badge variant="secondary">{role}</Badge>}
-        <Badge variant={isAdmin ? "success" : "secondary"}>{isAdmin ? "Administrator" : "Member"}</Badge>
+        {output.email && <span className="font-medium">{output.email}</span>}
+        {output.role && <Badge variant="secondary">{output.role}</Badge>}
+        <Badge variant={output.isAdmin ? "success" : "secondary"}>
+          {output.isAdmin ? "Administrator" : "Member"}
+        </Badge>
       </div>
     </div>
   )
 }
 
-function UserDetailView({ output }: { output: unknown }) {
-  const user = unwrapData(output)
-  if (!isPlainObject(user)) return null
+function UsersTableView({ users }: { users: UserRow[] }) {
+  if (users.length === 0) return <p className="text-xs text-muted-foreground">No results.</p>
+  return (
+    <div className="overflow-x-auto rounded-md border bg-background">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="whitespace-nowrap">Name</TableHead>
+            <TableHead className="whitespace-nowrap">Email</TableHead>
+            <TableHead className="whitespace-nowrap">Role</TableHead>
+            <TableHead className="whitespace-nowrap">Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users.map((user, index) => (
+            <TableRow key={index}>
+              <TableCell className="whitespace-nowrap font-medium">{user.name}</TableCell>
+              <TableCell className="whitespace-nowrap">{user.email}</TableCell>
+              <TableCell className="whitespace-nowrap">{user.role}</TableCell>
+              <TableCell className="whitespace-nowrap">{statusBadge(user.status)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function UserDetailView({ user }: { user: UserRow }) {
   return (
     <div className="space-y-2 rounded-md border bg-background p-3">
       <div className="flex items-center gap-2">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-primary/10 text-primary">
-            {user.name ? initialsOf(String(user.name)) : <UserRound className="h-4 w-4" />}
+            {user.name ? initialsOf(user.name) : <UserRound className="h-4 w-4" />}
           </AvatarFallback>
         </Avatar>
-        <span className="font-medium">{String(user.name ?? "—")}</span>
-        {typeof user.status !== "undefined" && statusBadge(user.status)}
+        <span className="font-medium">{user.name}</span>
+        {statusBadge(user.status)}
       </div>
       {keyValueGrid({
         email: user.email,
@@ -191,8 +166,8 @@ function DeletedView() {
 function GenericView({ output }: { output: unknown }) {
   const data = unwrapData(output)
   if (Array.isArray(data)) {
-    if (data.every((item) => isPlainObject(item))) return autoTable(data as RowLike[])
     if (data.length === 0) return <p className="text-xs text-muted-foreground">No results.</p>
+    if (data.every((item) => isPlainObject(item))) return autoTable(data as RowLike[])
     return <p className="text-xs text-muted-foreground">{`${data.length} item(s)`}</p>
   }
   if (isPlainObject(data)) {
@@ -204,29 +179,42 @@ function GenericView({ output }: { output: unknown }) {
   return null
 }
 
-const TOOL_TEMPLATES: Record<string, (output: unknown) => ReactNode> = {
-  account_whoami: (output) => <WhoAmIView output={output} />,
-  users_list: (output) => {
-    const data = unwrapData(output)
-    if (Array.isArray(data) && data.every((item) => isPlainObject(item))) {
-      return autoTable(data as RowLike[])
-    }
-    return <GenericView output={output} />
+function parseOrNull<T>(schema: z.ZodType<T>, output: unknown): T | null {
+  const parsed = schema.safeParse(unwrapData(output))
+  return parsed.success ? parsed.data : null
+}
+
+type ToolRenderer = (output: unknown) => ReactNode
+
+function renderUserDetail(output: unknown): ReactNode {
+  const parsed = parseOrNull(userRowOutputSchema, output)
+  return parsed ? <UserDetailView user={parsed} /> : <GenericView output={output} />
+}
+
+const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
+  account_whoami: (output) => {
+    const parsed = parseOrNull(whoamiOutputSchema, output)
+    return parsed ? <WhoAmIView output={parsed} /> : <GenericView output={output} />
   },
-  users_get: (output) => <UserDetailView output={output} />,
-  users_create: (output) => <UserDetailView output={output} />,
-  users_update: (output) => <UserDetailView output={output} />,
+  users_list: (output) => {
+    const parsed = parseOrNull(usersListOutputSchema, output)
+    return parsed ? <UsersTableView users={parsed} /> : <GenericView output={output} />
+  },
+  users_get: renderUserDetail,
+  users_create: renderUserDetail,
+  users_update: renderUserDetail,
   users_delete: (output) => {
-    const data = unwrapData(output)
-    if (data !== null && data !== undefined && !(isPlainObject(data) && data.success === true)) {
-      return <GenericView output={output} />
-    }
-    return <DeletedView />
+    const parsed = parseOrNull(deletedOutputSchema, output)
+    return parsed ? <DeletedView /> : <GenericView output={output} />
   },
 }
 
+export function hasToolRenderer(toolId: string): boolean {
+  return toolId in TOOL_TEMPLATES
+}
+
 export function ToolResult({ toolId, output }: { toolId: string; output: unknown }) {
-  const template = TOOL_TEMPLATES[toolId]
+  const template = (TOOL_TEMPLATES as Record<string, ToolRenderer | undefined>)[toolId]
   if (template) return <div className="pt-2">{template(output)}</div>
   return <div className="pt-2">{<GenericView output={output} />}</div>
 }

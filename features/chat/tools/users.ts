@@ -1,9 +1,11 @@
 import { z } from "zod"
 import { fetchApi } from "@/features/chat/lib/api"
-import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
+import type { ChatTool, UserRow } from "@/features/chat/types"
 
-async function fetchJson(url: string, init?: RequestInit): Promise<ToolExecutionResult> {
-  const res = await fetchApi<unknown>(url, init)
+type FetchResult<T> = { ok: true; data: T } | { ok: false; error: string }
+
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<FetchResult<T>> {
+  const res = await fetchApi<T>(url, init)
   if (res.ok) return { ok: true, data: res.data }
   if (res.status === 403) {
     return { ok: false, error: "Forbidden: your role does not grant this action." }
@@ -18,7 +20,7 @@ export const usersTools: ChatTool[] = [
     description: "Lists all users in the workspace.",
     inputSchema: z.object({}),
     approval: "auto",
-    execute: async () => fetchJson("/api/users"),
+    execute: async () => fetchJson<UserRow[]>("/api/users"),
   },
   {
     id: "users_get",
@@ -28,7 +30,7 @@ export const usersTools: ChatTool[] = [
     approval: "auto",
     execute: async (args) => {
       const { id } = args as { id: string }
-      return fetchJson(`/api/users/${encodeURIComponent(id)}`)
+      return fetchJson<UserRow>(`/api/users/${encodeURIComponent(id)}`)
     },
   },
   {
@@ -49,7 +51,10 @@ export const usersTools: ChatTool[] = [
         role: string
         status?: string
       }
-      return fetchJson("/api/users", { method: "POST", body: JSON.stringify({ name, email, role, status }) })
+      return fetchJson<UserRow>("/api/users", {
+        method: "POST",
+        body: JSON.stringify({ name, email, role, status }),
+      })
     },
   },
   {
@@ -72,7 +77,7 @@ export const usersTools: ChatTool[] = [
         role: string
         status?: string
       }
-      return fetchJson(`/api/users/${encodeURIComponent(id)}`, {
+      return fetchJson<UserRow>(`/api/users/${encodeURIComponent(id)}`, {
         method: "PUT",
         body: JSON.stringify({ name, email, role, status }),
       })
@@ -86,7 +91,7 @@ export const usersTools: ChatTool[] = [
     approval: "always",
     execute: async (args) => {
       const { id } = args as { id: string }
-      return fetchJson(`/api/users/${encodeURIComponent(id)}`, { method: "DELETE" })
+      return fetchJson<{ success: true }>(`/api/users/${encodeURIComponent(id)}`, { method: "DELETE" })
     },
   },
 ]

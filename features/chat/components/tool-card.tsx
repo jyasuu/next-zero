@@ -3,18 +3,11 @@
 import { Check, ShieldCheck, ShieldX, Wrench } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
+import { ToolArguments } from "@/features/chat/components/tool-arguments"
 import { ToolResult } from "@/features/chat/components/tool-result"
-import { isOutputAvailable, isOutputError, parseToolInput, toolNameFromPart, type ToolPartLike } from "@/features/chat/lib/parts"
+import { isOutputAvailable, isOutputError, toolNameFromPart, type ToolPartLike } from "@/features/chat/lib/parts"
 import { shouldRequireApproval } from "@/features/chat/lib/approval"
 import type { ChatTool } from "@/features/chat/types"
-
-function prettyJson(value: unknown): string {
-  try {
-    return JSON.stringify(value, null, 2)
-  } catch {
-    return String(value)
-  }
-}
 
 interface ToolCardProps {
   tool: ChatTool | undefined
@@ -57,11 +50,7 @@ export function ToolCard({ tool, part, onApprove, onDeny }: ToolCardProps) {
       </div>
 
       <div className="px-3 py-2">
-        {part.input !== undefined && (
-          <pre className="overflow-x-auto whitespace-pre-wrap rounded bg-background p-2 text-xs text-muted-foreground">
-            {prettyJson(parseToolInput(part.input))}
-          </pre>
-        )}
+        {part.input !== undefined && <ToolArguments input={part.input} />}
 
         {isOutputAvailable(part) && part.output !== undefined && <ToolResult toolId={toolId} output={part.output} />}
 
