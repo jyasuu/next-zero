@@ -50,12 +50,22 @@ export function useChatProvider() {
   return context
 }
 
+interface ApiError extends Error {
+  status: number
+}
+
+function isApiError(error: unknown): error is ApiError {
+  return error instanceof Error && typeof (error as ApiError).status === "number"
+}
+
 async function apiJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetchApi<T>(url, init)
   if (res.ok) return res.data
-  if (res.status === 403) throw new Error("Forbidden")
-  if (res.status === 503) throw new Error("Disabled")
-  throw new Error(`Request failed (${res.status})`)
+  const message =
+    res.status === 403 ? "Forbidden" : res.status === 503 ? "Disabled" : `Request failed (${res.status})`
+  const error = new Error(message) as ApiError
+  error.status = res.status
+  throw error
 }
 
 function toolRegistryToSerialized(registry: ToolScopeRegistration[]): SerializedChatTool[] {
@@ -93,13 +103,17 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
     try {
       const list = await apiJson<ChatSession[]>("/api/chat/sessions")
       setSessions(list)
+      const active = useChatStore.getState().activeSessionId
+      if (active && !list.some((s) => s.id === active)) {
+        setActiveSessionId(null)
+      }
       setDisabled(false)
     } catch (error) {
       if (error instanceof Error && error.message === "Disabled") {
         setDisabled(true)
       }
     }
-  }, [setSessions])
+  }, [setSessions, setActiveSessionId])
 
   useEffect(() => {
     refreshSessions()
@@ -140,12 +154,25 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
     onFinish: async ({ messages: msgs }) => {
       const sessionId = useChatStore.getState().activeSessionId
       if (!sessionId) return
+      const persist = async (id: string): Promise<boolean> => {
+        try {
+          const updated = await apiJson<ChatSession>(
+            `/api/chat/sessions/${id}/messages`,
+            { method: "POST", body: JSON.stringify({ messages: msgs }) }
+          )
+          upsertSession(updated)
+          return true
+        } catch (error) {
+          if (isApiError(error) && error.status === 404) return false
+          throw error
+        }
+      }
       try {
-        const updated = await apiJson<ChatSession>(
-          `/api/chat/sessions/${sessionId}/messages`,
-          { method: "POST", body: JSON.stringify({ messages: msgs }) }
-        )
-        upsertSession(updated)
+        if (await persist(sessionId)) return
+        const created = await apiJson<ChatSession>("/api/chat/sessions", { method: "POST" })
+        upsertSession(created)
+        setActiveSessionId(created.id)
+        await persist(created.id)
       } catch (error) {
         console.error("Failed to persist chat messages:", error)
       }
@@ -162,11 +189,15 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
       try {
         const restored = await apiJson<UIMessage[]>(`/api/chat/sessions/${id}/messages`)
         setMessages(restored)
-      } catch {
+      } catch (error) {
         setMessages([])
+        if (isApiError(error) && error.status === 404) {
+          removeSession(id)
+          if (activeSessionIdRef.current === id) setActiveSessionId(null)
+        }
       }
     },
-    [setActiveSessionId, setMessages]
+    [setActiveSessionId, setMessages, removeSession]
   )
 
   const deleteSession = useCallback(
