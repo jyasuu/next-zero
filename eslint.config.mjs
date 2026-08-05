@@ -1,16 +1,22 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import reactHooks from "eslint-plugin-react-hooks"
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals"
+import nextTypescript from "eslint-config-next/typescript"
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-];
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  {
+    plugins: {
+      "react-hooks": reactHooks,
+    },
+    rules: {
+      // React Compiler rules (new in react-hooks v7) flag existing deliberate
+      // patterns: mount-time hydration guards and effect-driven data fetching.
+      // Downgraded to warnings until those patterns migrate off sync setState.
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/refs": "warn",
+    },
+  },
+]
 
-export default eslintConfig;
+export default eslintConfig
