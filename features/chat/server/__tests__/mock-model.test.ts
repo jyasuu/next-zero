@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { createMockModel, pickToolIntent, generateToolArgs } from "@/features/chat/server/mock-model"
+import { TITLE_SYSTEM_PROMPT } from "@/features/chat/lib/title"
 import type { JSONValue } from "@ai-sdk/provider"
 import type { LanguageModelV4CallOptions, LanguageModelV4FunctionTool, LanguageModelV4Message, LanguageModelV4StreamPart } from "@ai-sdk/provider"
 
@@ -148,6 +149,40 @@ describe("generateToolArgs", () => {
 })
 
 describe("createMockModel doStream", () => {
+  it("returns the first user message as the title for a title-generation call", async () => {
+    const model = createMockModel()
+    const { parts } = await collect(model, {
+      prompt: [
+        { role: "system", content: TITLE_SYSTEM_PROMPT },
+        { role: "user", content: [{ type: "text", text: "Hello there" }] },
+      ],
+    })
+
+    expect(parts.some((p) => p.type === "tool-call")).toBe(false)
+    const deltas = parts.filter((p) => p.type === "text-delta").map((p) => (p as { delta: string }).delta)
+    expect(deltas.join("")).toBe("Hello there")
+    const finish = parts.find((p) => p.type === "finish")
+    if (finish && finish.type === "finish") {
+      expect(finish.finishReason.unified).toBe("stop")
+    }
+  })
+
+  it("truncates the title to the max length for a long first message", async () => {
+    const model = createMockModel()
+    const long = "a".repeat(120)
+    const { parts } = await collect(model, {
+      prompt: [
+        { role: "system", content: TITLE_SYSTEM_PROMPT },
+        { role: "user", content: [{ type: "text", text: long }] },
+      ],
+    })
+
+    const deltas = parts.filter((p) => p.type === "text-delta").map((p) => (p as { delta: string }).delta)
+    const title = deltas.join("")
+    expect(title.length).toBe(60)
+    expect(title.endsWith("…")).toBe(true)
+  })
+
   it("emits a tool call on the first turn for a matching intent", async () => {
     const model = createMockModel()
     const { parts } = await collect(model, {

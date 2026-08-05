@@ -63,9 +63,26 @@ describeDb("postgres data layer", () => {
     const listed = await listActiveSessions(email)
     expect(listed.some((s) => s.id === session.id)).toBe(true)
 
-    expect(await softDeleteSession(email, session.id)).toBe(true)
-    expect(await softDeleteSession(email, session.id)).toBe(false)
-    expect(await getOwnedSession(email, session.id)).toBeNull()
+    await expect(softDeleteSession(email, session.id)).resolves.toBe(true)
+    await expect(softDeleteSession(email, session.id)).resolves.toBe(false)
+    await expect(getOwnedSession(email, session.id)).resolves.toBeNull()
+  })
+
+  it("keeps the first-save title stable on later saves", async () => {
+    const email = "stable@example.com"
+    const session = await createSession(email)
+
+    await saveSessionMessages(email, session.id, [
+      { id: "s1", role: "user", parts: [{ type: "text", text: "First message" }] },
+      { id: "s2", role: "assistant", parts: [{ type: "text", text: "First reply" }] },
+    ])
+    const secondSave = await saveSessionMessages(email, session.id, [
+      { id: "s3", role: "user", parts: [{ type: "text", text: "A much longer second message than the first" }] },
+    ])
+
+    expect(secondSave?.title).toBe("First message")
+    const persisted = await getOwnedSession(email, session.id)
+    expect(persisted?.title).toBe("First message")
   })
 
   it("users CRUD via run/queryRow", async () => {

@@ -1,4 +1,5 @@
 import type { ChatSession } from "@/features/chat/types"
+import { truncateTitle } from "@/features/chat/lib/title"
 
 export interface ChatSessionRow {
   id: string
@@ -35,19 +36,18 @@ export function sessionOwnedBy(row: ChatSessionRow, email: string): boolean {
   return row.user_email === email
 }
 
-const TITLE_MAX_LENGTH = 60
-
-export function seedTitleFromMessages(messages: ChatMessageLike[]): string | null {
+export function firstUserTextFromMessages(messages: ChatMessageLike[]): string | null {
   for (const message of messages) {
     if (message.role !== "user") continue
     const text = message.parts.find((part) => part.type === "text" && part.text)?.text
-    if (text) {
-      return text.length > TITLE_MAX_LENGTH
-        ? `${text.slice(0, TITLE_MAX_LENGTH - 1)}…`
-        : text
-    }
+    if (text) return text
   }
   return null
+}
+
+export function seedTitleFromMessages(messages: ChatMessageLike[]): string | null {
+  const text = firstUserTextFromMessages(messages)
+  return text ? truncateTitle(text) : null
 }
 
 export function serializeParts(parts: unknown): string {

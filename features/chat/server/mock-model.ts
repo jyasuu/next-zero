@@ -7,6 +7,7 @@ import type {
   LanguageModelV4ToolResultOutput,
   JSONSchema7,
 } from "@ai-sdk/provider"
+import { isTitleSystemPrompt, truncateTitle } from "@/features/chat/lib/title"
 
 const FIXTURES_BY_PROPERTY: Record<string, string> = {
   name: "Mock User",
@@ -148,10 +149,18 @@ export function createMockModel(): LanguageModelV4 {
       (t): t is LanguageModelV4FunctionTool => t.type === "function"
     )
 
+    const systemContent = prompt.find((m) => m.role === "system")?.content
     const toolResultOutput = findToolResultOutput(prompt)
     let parts: LanguageModelV4StreamPart[]
 
-    if (toolResultOutput) {
+    if (typeof systemContent === "string" && isTitleSystemPrompt(systemContent)) {
+      const firstUser = prompt.find((m) => m.role === "user")
+      const firstUserText =
+        firstUser && firstUser.role === "user"
+          ? firstUser.content.find((p): p is { type: "text"; text: string } => p.type === "text")?.text ?? ""
+          : ""
+      parts = [...textParts(truncateTitle(firstUserText)), finishPart("stop")]
+    } else if (toolResultOutput) {
       const text = isErrorOutput(toolResultOutput)
         ? `The requested action was refused: ${describeOutput(toolResultOutput)}`
         : `The action was completed successfully. ${describeOutput(toolResultOutput)}`

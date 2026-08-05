@@ -3,6 +3,7 @@ import {
   filterActiveSessions,
   sessionOwnedBy,
   seedTitleFromMessages,
+  firstUserTextFromMessages,
   serializeParts,
   deserializeParts,
 } from "@/features/chat/lib/sessions"
@@ -95,6 +96,35 @@ describe("seedTitleFromMessages", () => {
     const title = seedTitleFromMessages([userMsg(long)])
     expect(title).toBeTruthy()
     expect((title as string).length).toBeLessThanOrEqual(60)
+  })
+})
+
+describe("firstUserTextFromMessages", () => {
+  const userMsg = (text: string) => ({
+    role: "user",
+    id: "u1",
+    parts: [{ type: "text", text }],
+  })
+
+  it("returns the first user text message", () => {
+    expect(firstUserTextFromMessages([userMsg("List all users"), { role: "assistant", id: "a1", parts: [{ type: "text", text: "Here you go" }] }])).toBe("List all users")
+  })
+
+  it("returns null when there is no user text", () => {
+    expect(firstUserTextFromMessages([{ role: "assistant", id: "a1", parts: [{ type: "text", text: "Hi" }] }])).toBeNull()
+  })
+
+  it("ignores non-text user parts for the title", () => {
+    const msgs = [
+      { role: "user", id: "u1", parts: [{ type: "tool-output", toolCallId: "t1", output: {} }] },
+      userMsg("Second message"),
+    ]
+    expect(firstUserTextFromMessages(msgs)).toBe("Second message")
+  })
+
+  it("returns the full message without truncation", () => {
+    const long = "x".repeat(120)
+    expect(firstUserTextFromMessages([userMsg(long)])).toBe(long)
   })
 })
 

@@ -3,11 +3,13 @@ import {
   filterActiveSessions,
   rowToSession,
   seedTitleFromMessages,
+  firstUserTextFromMessages,
   serializeParts,
   sessionOwnedBy,
   type ChatMessageLike,
   type ChatSessionRow,
 } from "@/features/chat/lib/sessions"
+import { generateSessionTitle } from "@/features/chat/server/title"
 import type { ChatSession } from "@/features/chat/types"
 
 function nowIso(): string {
@@ -61,8 +63,17 @@ export async function saveSessionMessages(
 
   const now = nowIso()
 
-  const title = seedTitleFromMessages(messages)
-  if (title && !session.title) {
+  const existingTitle = session.title ?? ""
+  let title = existingTitle
+  if (!existingTitle) {
+    const firstUserText = firstUserTextFromMessages(messages)
+    if (firstUserText) {
+      const generated = await generateSessionTitle(firstUserText)
+      title = generated ?? seedTitleFromMessages(messages) ?? ""
+    }
+  }
+
+  if (title && !existingTitle) {
     await run("UPDATE chat_sessions SET title = $1, updated_at = $2 WHERE id = $3", [title, now, id])
   } else {
     await run("UPDATE chat_sessions SET updated_at = $1 WHERE id = $2", [now, id])
@@ -79,7 +90,7 @@ export async function saveSessionMessages(
 
   return rowToSession({
     ...session,
-    title: title ?? session.title ?? "",
+    title,
     updated_at: now,
   })
 }
