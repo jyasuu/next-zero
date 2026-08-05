@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { mockNotifications } from "@/lib/constants"
 import { Check, X } from "lucide-react"
+import { BrowserNotificationsCard } from "@/features/notifications/components/browser-notifications-card"
 
 type Notification = (typeof mockNotifications)[0]
 
@@ -115,6 +116,8 @@ export default function NotificationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <BrowserNotificationsCard />
     </div>
   )
 }

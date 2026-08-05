@@ -150,6 +150,28 @@
       "warning": "Warning",
       "error": "Error",
       "success": "Success"
+    },
+    "browser": {
+      "title": "Browser notifications",
+      "description": "Show system notifications when the app runs in the background.",
+      "enable": "Enable browser notifications",
+      "granted": "Notifications are enabled.",
+      "denied": "Notifications are blocked in your browser settings.",
+      "unavailable": "This browser does not support notifications.",
+      "permissionNotRequested": "Turn on notifications to get alerts when the tab is in the background.",
+      "categories": {
+        "chat": "Assistant finished",
+        "system": "System alerts"
+      },
+      "test": "Send a test notification",
+      "testTitle": "Test notification",
+      "testBody": "Sample {category} notification",
+      "chat": {
+        "finishedTitle": "Assistant replied",
+        "finishedBody": "Your assistant has finished replying.",
+        "waitingTitle": "Action needed",
+        "waitingBody": "Your assistant is waiting for your approval."
+      }
     }
   },
   "auditLog": {

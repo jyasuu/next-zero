@@ -12,12 +12,14 @@ import {
 } from "react"
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls, type UIMessage } from "ai"
 import { useChat } from "@ai-sdk/react"
+import { useTranslations } from "next-intl"
 import { useChatStore } from "@/stores/chat-store"
 import { mergeTools, type ToolScopeRegistration } from "@/features/chat/lib/scopes"
 import { serializeTool } from "@/features/chat/lib/serialize"
 import { fetchApi } from "@/features/chat/lib/api"
 import { globalTools } from "@/features/chat/tools/global"
 import type { ChatSession, ChatTool, SerializedChatTool } from "@/features/chat/types"
+import { useBrowserNotifications } from "@/features/notifications/hooks/use-browser-notifications"
 
 export type ChatStatus = "submitted" | "streaming" | "ready" | "error"
 
@@ -78,6 +80,8 @@ interface ChatProviderProps {
 }
 
 export function ChatProvider({ children, claims }: ChatProviderProps) {
+  const t = useTranslations("notifications")
+  const { notifyChatTurnFinished } = useBrowserNotifications()
   const registryRef = useRef<ToolScopeRegistration[]>([])
   const [registryVersion, setRegistryVersion] = useState(0)
   const [disabled, setDisabled] = useState(false)
@@ -153,7 +157,6 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     onFinish: async ({ messages: msgs }) => {
       const sessionId = useChatStore.getState().activeSessionId
-      if (!sessionId) return
       const persist = async (id: string): Promise<boolean> => {
         try {
           const updated = await apiJson<ChatSession>(
@@ -167,15 +170,24 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
           throw error
         }
       }
-      try {
-        if (await persist(sessionId)) return
-        const created = await apiJson<ChatSession>("/api/chat/sessions", { method: "POST" })
-        upsertSession(created)
-        setActiveSessionId(created.id)
-        await persist(created.id)
-      } catch (error) {
-        console.error("Failed to persist chat messages:", error)
+      if (sessionId) {
+        try {
+          if (!(await persist(sessionId))) {
+            const created = await apiJson<ChatSession>("/api/chat/sessions", { method: "POST" })
+            upsertSession(created)
+            setActiveSessionId(created.id)
+            await persist(created.id)
+          }
+        } catch (error) {
+          console.error("Failed to persist chat messages:", error)
+        }
       }
+      notifyChatTurnFinished(msgs, tools, {
+        finishedTitle: t("browser.chat.finishedTitle"),
+        finishedBody: t("browser.chat.finishedBody"),
+        waitingTitle: t("browser.chat.waitingTitle"),
+        waitingBody: t("browser.chat.waitingBody"),
+      })
     },
   })
 

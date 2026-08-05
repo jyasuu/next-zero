@@ -150,6 +150,28 @@
       "warning": "警告",
       "error": "错误",
       "success": "成功"
+    },
+    "browser": {
+      "title": "浏览器通知",
+      "description": "当应用在后台运行时显示系统通知。",
+      "enable": "启用浏览器通知",
+      "granted": "通知已启用。",
+      "denied": "通知已在浏览器设置中被阻止。",
+      "unavailable": "此浏览器不支持通知。",
+      "permissionNotRequested": "开启通知，以便在标签页位于后台时收到提醒。",
+      "categories": {
+        "chat": "助手回复完成",
+        "system": "系统提醒"
+      },
+      "test": "发送测试通知",
+      "testTitle": "测试通知",
+      "testBody": "示例{category}通知",
+      "chat": {
+        "finishedTitle": "助手已回复",
+        "finishedBody": "您的助手已完成回复。",
+        "waitingTitle": "需要操作",
+        "waitingBody": "您的助手正在等待您批准。"
+      }
     }
   },
   "auditLog": {
