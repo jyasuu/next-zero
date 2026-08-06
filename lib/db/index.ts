@@ -52,10 +52,24 @@ const SCHEMA_STATEMENTS: string[] = [
     decided_at TEXT
   );`,
   `CREATE INDEX IF NOT EXISTS idx_requests_requester ON requests (requester_email, created_at);`,
+  `CREATE TABLE IF NOT EXISTS expenses (
+    id TEXT PRIMARY KEY,
+    requester_email TEXT NOT NULL,
+    title TEXT NOT NULL,
+    amount TEXT NOT NULL,
+    justification TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    decided_by TEXT,
+    decision_comment TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    decided_at TEXT
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_expenses_requester ON expenses (requester_email, created_at);`,
   `INSERT INTO roles (id, name, description, permissions, policies, user_count) VALUES
-    ('1', 'Admin', 'Full system access', '["read","write","delete","manage_users","manage_roles"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","users:Write","users:Create","users:Delete","users:Manage","roles:Read","roles:Manage","audit:Read","api-keys:Read","api-keys:Manage","reports:Read","reports:Export","settings:Read","system:Read","notifications:Read","requests:Read","requests:Create","requests:Approve"]}]}]', 3),
-    ('2', 'Editor', 'Can create and edit content', '["read","write"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read","requests:Read","requests:Create","requests:Approve"]}]}]', 4),
-    ('3', 'Viewer', 'Read-only access', '["read"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","reports:Read","requests:Read","requests:Create"]}]}]', 5),
+    ('1', 'Admin', 'Full system access', '["read","write","delete","manage_users","manage_roles"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","users:Write","users:Create","users:Delete","users:Manage","roles:Read","roles:Manage","audit:Read","api-keys:Read","api-keys:Manage","reports:Read","reports:Export","settings:Read","system:Read","notifications:Read","requests:Read","requests:Create","requests:Approve","expenses:Read","expenses:Create","expenses:Approve"]}]}]', 3),
+    ('2', 'Editor', 'Can create and edit content', '["read","write"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read","requests:Read","requests:Create","requests:Approve","expenses:Read","expenses:Create","expenses:Approve"]}]}]', 4),
+    ('3', 'Viewer', 'Read-only access', '["read"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","reports:Read","requests:Read","requests:Create","expenses:Read","expenses:Create"]}]}]', 5),
     ('4', 'Auditor', 'Access to audit logs and reports', '["read","export"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","audit:Read","reports:Read","reports:Export"]}]}]', 0)
   ON CONFLICT (id) DO NOTHING;`,
   `INSERT INTO users (id, name, email, role, status, created_at) VALUES

@@ -168,6 +168,11 @@ export const permissionDomains = [
     actions: ["requests:Read", "requests:Create", "requests:Approve"],
   },
   {
+    domain: "expenses",
+    label: "Expenses",
+    actions: ["expenses:Read", "expenses:Create", "expenses:Approve"],
+  },
+  {
     domain: "settings",
     label: "Settings",
     actions: ["settings:Read"],
