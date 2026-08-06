@@ -15,6 +15,7 @@ export const mainNavItems: NavItem[] = [
   { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read", i18nKey: "nav.auditLog" },
   { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read", i18nKey: "nav.apiKeys" },
   { title: "Reports", href: "/reports", icon: "BarChart3", requiredAction: "reports:Read", i18nKey: "nav.reports" },
+  { title: "Requests", href: "/requests", icon: "ClipboardList", requiredAction: "requests:Read", i18nKey: "nav.requests" },
   { title: "Roles", href: "/roles", icon: "Shield", requiredAction: "roles:Read", i18nKey: "nav.roles" },
   { title: "System Health", href: "/system-health", icon: "Activity", requiredAction: "system:Read", i18nKey: "nav.systemHealth" },
 ]

@@ -120,13 +120,13 @@ test.describe("Roles CRUD", () => {
     await expect(page.getByRole("row").filter({ hasText: "E2E Role" })).toBeVisible()
 
     // Edit
-    await page.getByRole("button", { name: /edit role/i }).first().click()
+    await page.getByRole("row").filter({ hasText: "E2E Role" }).getByRole("button", { name: /edit role/i }).click()
     await page.locator("#roleName").fill("E2E Role Updated")
     await page.getByRole("button", { name: "Save Role" }).click()
     await expect(page.getByRole("cell", { name: "E2E Role Updated" })).toBeVisible()
 
     // Delete
-    await page.getByRole("button", { name: /delete role/i }).first().click()
+    await page.getByRole("row").filter({ hasText: "E2E Role Updated" }).getByRole("button", { name: /delete role/i }).click()
     await page.getByRole("dialog").getByRole("button", { name: /delete/i }).click()
     await expect(page.getByRole("cell", { name: "E2E Role Updated" })).toHaveCount(0)
   })
