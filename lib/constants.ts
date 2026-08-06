@@ -189,6 +189,11 @@ export const permissionDomains = [
     actions: ["reports:Read", "reports:Export"],
   },
   {
+    domain: "requests",
+    label: "Requests",
+    actions: ["requests:Read", "requests:Create", "requests:Approve"],
+  },
+  {
     domain: "settings",
     label: "Settings",
     actions: ["settings:Read"],
