@@ -20,6 +20,10 @@
    {
     "name": "viewer",
     "description": "Read-only access"
+   },
+   {
+    "name": "auditor",
+    "description": "Access to audit logs and reports"
    }
   ],
   "client": {}
@@ -78,7 +82,7 @@
       }
     ]
   },
-  {
+   {
     "username": "adminuser",
     "email": "adminuser@localhost",
     "firstName": "Normal",
@@ -95,6 +99,24 @@
         "temporary": false
       }
     ]
-  }
-]
+   },
+   {
+    "username": "auditoruser",
+    "email": "auditor@localhost",
+    "firstName": "Auditor",
+    "lastName": "User",
+    "enabled": true,
+    "emailVerified": true,
+    "realmRoles": [
+      "auditor"
+    ],
+    "credentials": [
+      {
+        "type": "password",
+        "value": "TestPass123!",
+        "temporary": false
+      }
+    ]
+   }
+ ]
 }

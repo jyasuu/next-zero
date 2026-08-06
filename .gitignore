@@ -42,6 +42,9 @@ test-results/
 # vercel
 .vercel
 
+# agent session transcripts
+session-*.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

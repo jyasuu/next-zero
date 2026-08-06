@@ -29,7 +29,16 @@
     "systemHealth": "系统健康",
     "settings": "系统设置",
     "profile": "个人资料",
-    "notifications": "通知中心"
+    "notifications": "通知中心",
+    "group": {
+      "overview": "概览",
+      "management": "管理",
+      "insights": "洞察",
+      "settings": "设置"
+    },
+    "badge": {
+      "new": "新"
+    }
   },
   "auth": {
     "signIn": "登录",
@@ -324,7 +333,8 @@
     "resolved": "解决时间"
   },
   "topbar": {
-    "search": "搜索..."
+    "search": "搜索...",
+    "menu": "菜单"
   },
   "userNav": {
     "myAccount": "我的账户",
@@ -349,7 +359,8 @@
     "backToDashboard": "返回仪表盘"
   },
   "sidebar": {
-    "collapse": "折叠"
+    "collapse": "折叠",
+    "menu": "导航"
   },
   "chat": {
     "title": "聊天",

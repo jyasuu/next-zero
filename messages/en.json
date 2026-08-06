@@ -29,7 +29,16 @@
     "systemHealth": "System Health",
     "settings": "Settings",
     "profile": "Profile",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "group": {
+      "overview": "Overview",
+      "management": "Management",
+      "insights": "Insights",
+      "settings": "Settings"
+    },
+    "badge": {
+      "new": "New"
+    }
   },
   "auth": {
     "signIn": "Sign In",
@@ -324,7 +333,8 @@
     "resolved": "Resolved"
   },
   "topbar": {
-    "search": "Search..."
+    "search": "Search...",
+    "menu": "Menu"
   },
   "userNav": {
     "myAccount": "My Account",
@@ -349,7 +359,8 @@
     "backToDashboard": "Back to Dashboard"
   },
   "sidebar": {
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "menu": "Navigation"
   },
   "chat": {
     "title": "Chat",

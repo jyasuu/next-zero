@@ -51,7 +51,7 @@ services:
       KEYCLOAK_CLIENT_ID: next-zero-app
       KEYCLOAK_CLIENT_SECRET: ""
       KEYCLOAK_ISSUER: http://keycloak.local:8080/realms/next-zero
-      ROLE_MAPPING: '{"admin":"Admin","editor":"Editor","viewer":"Viewer"}'
+      ROLE_MAPPING: '{"admin":"Admin","editor":"Editor","viewer":"Viewer","auditor":"Auditor"}'
       ADMIN_USERNAME: admin
       ADMIN_PASSWORD: admin
       DATABASE_URL: postgres://postgres:postgres@postgres.local:5432/next_zero

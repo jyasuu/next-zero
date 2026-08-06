@@ -1,31 +1,5 @@
 import type { Policy } from "@/lib/acl"
 
-export type NavItem = {
-  title: string
-  href: string
-  icon: string
-  requiredAction?: string
-  i18nKey: string
-}
-
-export const mainNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: "LayoutDashboard", i18nKey: "nav.dashboard" },
-  { title: "Chat", href: "/chat", icon: "MessageSquare", i18nKey: "nav.chat" },
-  { title: "Users", href: "/users", icon: "Users", requiredAction: "users:Read", i18nKey: "nav.users" },
-  { title: "Audit Log", href: "/audit-log", icon: "ScrollText", requiredAction: "audit:Read", i18nKey: "nav.auditLog" },
-  { title: "API Keys", href: "/api-keys", icon: "Key", requiredAction: "api-keys:Read", i18nKey: "nav.apiKeys" },
-  { title: "Reports", href: "/reports", icon: "BarChart3", requiredAction: "reports:Read", i18nKey: "nav.reports" },
-  { title: "Requests", href: "/requests", icon: "ClipboardList", requiredAction: "requests:Read", i18nKey: "nav.requests" },
-  { title: "Roles", href: "/roles", icon: "Shield", requiredAction: "roles:Read", i18nKey: "nav.roles" },
-  { title: "System Health", href: "/system-health", icon: "Activity", requiredAction: "system:Read", i18nKey: "nav.systemHealth" },
-]
-
-export const settingsNavItems: NavItem[] = [
-  { title: "Settings", href: "/settings", icon: "Settings", requiredAction: "settings:Read", i18nKey: "nav.settings" },
-  { title: "Profile", href: "/profile", icon: "User", i18nKey: "nav.profile" },
-  { title: "Notifications", href: "/notifications", icon: "Bell", requiredAction: "notifications:Read", i18nKey: "nav.notifications" },
-]
-
 export interface User {
   id: string
   name: string

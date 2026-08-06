@@ -3,18 +3,15 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { ability } from "@/lib/acl"
 import { getRoleWithPolicies } from "@/lib/roles"
-import { mainNavItems, settingsNavItems } from "@/lib/constants"
+import { navRouteActions, navSections, filterSections } from "@/lib/nav"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
+import { MobileNav } from "@/components/layout/mobile-nav"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ChatProvider } from "@/features/chat/components/chat-provider"
 import { ChatWidget } from "@/features/chat/components/chat-widget"
 
-const routeActions: Record<string, string> = Object.fromEntries(
-  [...mainNavItems, ...settingsNavItems]
-    .filter((item) => item.requiredAction && item.href !== "/dashboard")
-    .map((item) => [item.href, item.requiredAction as string])
-)
+const routeActions = navRouteActions(navSections)
 
 export default async function DashboardLayout({
   children,
@@ -35,6 +32,8 @@ export default async function DashboardLayout({
     redirect("/403")
   }
 
+  const sections = filterSections(navSections, (action) => can(action))
+
   return (
     <TooltipProvider delayDuration={0}>
     <ChatProvider
@@ -45,13 +44,14 @@ export default async function DashboardLayout({
       }}
     >
     <div className="flex h-screen overflow-hidden">
-      <Sidebar role={role} isAdmin={isAdmin} />
+      <Sidebar sections={sections} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar user={session.user} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
     <ChatWidget />
+    <MobileNav sections={sections} />
     </ChatProvider>
     </TooltipProvider>
   )
