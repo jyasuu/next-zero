@@ -60,7 +60,7 @@
     }
    ]
   },
-   {
+  {
     "username": "vieweruser",
     "email": "viewer@example.com",
     "firstName": "Viewer",
@@ -68,15 +68,33 @@
     "enabled": true,
     "emailVerified": true,
     "realmRoles": [
-     "viewer"
+      "viewer"
     ],
     "credentials": [
-     {
-      "type": "password",
-      "value": "TestPass123!",
-      "temporary": false
-     }
+      {
+        "type": "password",
+        "value": "TestPass123!",
+        "temporary": false
+      }
     ]
-   }
- ]
+  },
+  {
+    "username": "adminuser",
+    "email": "adminuser@localhost",
+    "firstName": "Normal",
+    "lastName": "Admin",
+    "enabled": true,
+    "emailVerified": true,
+    "realmRoles": [
+      "admin"
+    ],
+    "credentials": [
+      {
+        "type": "password",
+        "value": "TestPass123!",
+        "temporary": false
+      }
+    ]
+  }
+]
 }

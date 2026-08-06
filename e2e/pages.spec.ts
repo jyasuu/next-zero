@@ -131,3 +131,21 @@ test.describe("Roles CRUD", () => {
     await expect(page.getByRole("cell", { name: "E2E Role Updated" })).toHaveCount(0)
   })
 })
+
+test.describe("Roles permissions as non-super admin", () => {
+  test.use({ storageState: "e2e/.auth/admin-normal.json" })
+
+  test("saves a role without hitting 403", async ({ page }) => {
+    await page.goto("/roles")
+    await expect(page.locator("h1")).toHaveText("Role Management")
+
+    const viewerRow = page.getByRole("row").filter({ hasText: "Viewer" }).first()
+    await viewerRow.getByRole("button", { name: /edit role/i }).click()
+    const dialog = page.getByRole("dialog")
+    await expect(dialog.locator('[id="perm-requests:Create"]')).toBeChecked()
+    await dialog.getByRole("button", { name: "Save Role" }).click()
+
+    await expect(dialog).not.toBeVisible({ timeout: 10000 })
+    await expect(page.getByRole("cell", { name: "Viewer" }).first()).toBeVisible()
+  })
+})

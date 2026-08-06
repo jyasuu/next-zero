@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { queryRow, run } from "@/lib/db"
-import { requireApiAction } from "@/lib/api-acl"
+import { requireApiAction, requireApiVerb } from "@/lib/api-acl"
 import { evictRoleFromCache } from "@/lib/roles"
 
 function parseRole(row: Record<string, unknown>) {
@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authResult = await requireApiAction("PUT", "roles")
+  const authResult = await requireApiVerb("Manage", "roles")
   if (!authResult.ok) return authResult.response
 
   const { id } = await params
@@ -41,7 +41,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authResult = await requireApiAction("DELETE", "roles")
+  const authResult = await requireApiVerb("Manage", "roles")
   if (!authResult.ok) return authResult.response
 
   const { id } = await params

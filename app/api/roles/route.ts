@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { queryAll, run } from "@/lib/db"
-import { requireApiAction } from "@/lib/api-acl"
+import { requireApiAction, requireApiVerb } from "@/lib/api-acl"
 
 function parseRole(row: Record<string, unknown>) {
   return {
@@ -19,7 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireApiAction("POST", "roles")
+  const authResult = await requireApiVerb("Manage", "roles")
   if (!authResult.ok) return authResult.response
 
   const body = await request.json()
