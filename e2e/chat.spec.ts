@@ -9,6 +9,8 @@ async function ask(page: Page, text: string) {
   await page.getByRole("button", { name: "Send message" }).click()
 }
 
+const unique = () => `Hello there ${Date.now()}-${Math.floor(Math.random() * 1000)}`
+
 test.describe("Chat copilot", () => {
   test.describe("admin", () => {
     test.use({ storageState: "e2e/.auth/admin.json" })
@@ -66,27 +68,28 @@ test.describe("Chat copilot", () => {
     })
 
     test("sessions persist, resume, and soft-delete", async ({ page }) => {
+      const title = unique()
       await page.goto("/chat")
       await expect(page.locator("h1")).toHaveText("Chat")
-      await ask(page, "Hello there")
+      await ask(page, title)
       await expect(page.getByText("The action was completed successfully.")).toBeVisible()
 
       await page.reload()
       await expect(page.locator("h1")).toHaveText("Chat")
-      await expect(page.getByRole("combobox", { name: "Select a conversation" })).toContainText("Hello there")
+      await expect(page.getByRole("combobox", { name: "Select a conversation" })).toContainText(title)
 
       await page.getByRole("button", { name: "New chat" }).click()
       await expect(page.getByRole("combobox", { name: "Select a conversation" })).toContainText("New chat")
       await expect(page.getByText("How can I help you?")).toBeVisible()
 
       await page.getByRole("combobox", { name: "Select a conversation" }).click()
-      await page.getByRole("option", { name: "Hello there" }).click()
+      await page.getByRole("option", { name: title }).click()
       await expect(page.getByText("The action was completed successfully.")).toBeVisible()
 
       await page.getByRole("button", { name: "Delete conversation" }).click()
       await expect(page.getByRole("combobox", { name: "Select a conversation" })).toContainText("New chat")
       await page.getByRole("combobox", { name: "Select a conversation" }).click()
-      await expect(page.getByRole("option", { name: "Hello there" })).toHaveCount(0)
+      await expect(page.getByRole("option", { name: title })).toHaveCount(0)
     })
   })
 
