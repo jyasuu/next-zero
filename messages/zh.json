@@ -423,6 +423,11 @@
     "toolCompleted": "已完成",
     "toolFailed": "已拒绝",
     "deniedMessage": "用户已拒绝请求的操作。",
-    "toolUnavailable": "该工具仅在开始此会话的页面上可用。"
+    "toolUnavailable": "该工具仅在开始此会话的页面上可用。",
+    "formFill": {
+      "valid": "有效",
+      "invalid": "无效",
+      "noErrors": "无字段错误"
+    }
   }
 }

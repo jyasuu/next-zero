@@ -423,6 +423,11 @@
     "toolCompleted": "Completed",
     "toolFailed": "Refused",
     "deniedMessage": "The user denied the requested action.",
-    "toolUnavailable": "This tool is only available on the page where this conversation started."
+    "toolUnavailable": "This tool is only available on the page where this conversation started.",
+    "formFill": {
+      "valid": "Valid",
+      "invalid": "Invalid",
+      "noErrors": "No field errors"
+    }
   }
 }

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react"
 import { z } from "zod"
+import { useTranslations } from "next-intl"
 import { CheckCircle2, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,7 @@ import {
 } from "@/features/chat/components/format"
 import {
   deletedOutputSchema,
+  formFillOutputSchema,
   userRowOutputSchema,
   usersListOutputSchema,
   whoamiOutputSchema,
@@ -163,6 +165,34 @@ function DeletedView() {
   )
 }
 
+function FormFillView({ output }: { output: unknown }) {
+  const t = useTranslations("chat")
+  const parsed = parseOrNull(formFillOutputSchema, output)
+  if (!parsed) return <GenericView output={output} />
+  const hasErrors = Object.keys(parsed.errors).length > 0
+  return (
+    <div className="space-y-2 rounded-md border bg-background p-3">
+      <div className="flex items-center gap-2">
+        <Badge variant={parsed.valid ? "success" : "destructive"}>
+          {parsed.valid ? t("formFill.valid") : t("formFill.invalid")}
+        </Badge>
+        {parsed.valid && !hasErrors && (
+          <span className="text-xs text-muted-foreground">{t("formFill.noErrors")}</span>
+        )}
+      </div>
+      {Object.entries(parsed.values).map(([field, value]) => (
+        <div key={field} className="text-xs">
+          <span className="text-muted-foreground">{labelOf(field)}</span>
+          <p className="font-medium">{value}</p>
+          {parsed.errors[field] && (
+            <p className="text-destructive">{parsed.errors[field]}</p>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function GenericView({ output }: { output: unknown }) {
   const data = unwrapData(output)
   if (Array.isArray(data)) {
@@ -207,6 +237,8 @@ const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
     const parsed = parseOrNull(deletedOutputSchema, output)
     return parsed ? <DeletedView /> : <GenericView output={output} />
   },
+  expenses_form_fill: (output) => <FormFillView output={output} />,
+  requests_form_fill: (output) => <FormFillView output={output} />,
 }
 
 export function hasToolRenderer(toolId: string): boolean {

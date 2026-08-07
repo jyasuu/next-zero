@@ -48,6 +48,12 @@ export const userRowOutputSchema = z.object({
 export const usersListOutputSchema = z.array(userRowOutputSchema)
 export const deletedOutputSchema = z.object({ success: z.literal(true) })
 
+export const formFillOutputSchema = z.object({
+  valid: z.boolean(),
+  values: z.record(z.string(), z.string()),
+  errors: z.record(z.string(), z.string()),
+})
+
 export type UserRow = z.infer<typeof userRowOutputSchema>
 export type WhoAmIOutput = z.infer<typeof whoamiOutputSchema>
 
@@ -58,5 +64,7 @@ export type KnownToolOutput =
   | { tool: "users_create"; output: UserRow }
   | { tool: "users_update"; output: UserRow }
   | { tool: "users_delete"; output: z.infer<typeof deletedOutputSchema> }
+  | { tool: "expenses_form_fill"; output: z.infer<typeof formFillOutputSchema> }
+  | { tool: "requests_form_fill"; output: z.infer<typeof formFillOutputSchema> }
 
 export type ToolId = KnownToolOutput["tool"]

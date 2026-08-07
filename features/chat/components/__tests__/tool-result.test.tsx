@@ -1,7 +1,11 @@
 import React from "react"
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import { render, screen, within } from "@testing-library/react"
 import { ToolResult } from "@/features/chat/components/tool-result"
+
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+}))
 
 const WHOAMI = { email: "admin@localhost", role: "Admin", isAdmin: true }
 const USERS = [
@@ -70,6 +74,43 @@ describe("ToolResult", () => {
       render(<ToolResult toolId="users_delete" output={{ success: true }} />)
       expect(screen.queryByText(/"success":/)).toBeNull()
       expect(screen.getByText("User deleted.")).not.toBeNull()
+    })
+  })
+
+  describe("expenses_form_fill / requests_form_fill", () => {
+    it("renders a valid verdict with the filled values", () => {
+      render(
+        <ToolResult
+          toolId="expenses_form_fill"
+          output={{ valid: true, values: { title: "Team lunch", amount: "42.50" }, errors: {} }}
+        />
+      )
+      expect(screen.getByText("formFill.valid")).not.toBeNull()
+      expect(screen.getByText("Team lunch")).not.toBeNull()
+      expect(screen.getByText("42.50")).not.toBeNull()
+      expect(screen.queryByText("formFill.invalid")).toBeNull()
+    })
+
+    it("renders an invalid verdict with per-field errors", () => {
+      render(
+        <ToolResult
+          toolId="requests_form_fill"
+          output={{ valid: false, values: { title: "", access: "prod" }, errors: { title: "title is required" } }}
+        />
+      )
+      expect(screen.getByText("formFill.invalid")).not.toBeNull()
+      expect(screen.getByText("title is required")).not.toBeNull()
+      expect(screen.queryByText("formFill.noErrors")).toBeNull()
+    })
+
+    it("unwraps an { ok, data } envelope", () => {
+      render(
+        <ToolResult
+          toolId="expenses_form_fill"
+          output={{ ok: true, data: { valid: true, values: { amount: "1.00" }, errors: {} } }}
+        />
+      )
+      expect(screen.getByText("formFill.valid")).not.toBeNull()
     })
   })
 
