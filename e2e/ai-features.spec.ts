@@ -68,6 +68,20 @@ test.describe("AI form-fill and state sync", () => {
       await expect(page.locator("#request-justification")).toHaveValue("mock-justification")
     })
 
+    test("auto-apply does not overwrite form fields the user has already filled", async ({ page }) => {
+      await page.goto("/requests")
+      await expect(page.locator("h1")).toHaveText("Access Requests")
+      await page.locator("#request-title").fill("My custom title")
+      await openWidget(page)
+      await page.locator(WIDGET).getByRole("switch", { name: "Auto-apply" }).click()
+      await ask(page, "Fill the access request form")
+
+      await expect(page.locator(WIDGET).getByText("Valid").first()).toBeVisible()
+      await expect(page.locator("#request-title")).toHaveValue("My custom title")
+      await expect(page.locator("#request-access")).toHaveValue("")
+      await expect(page.locator("#request-justification")).toHaveValue("")
+    })
+
     test("an approved AI create appears in the requests list without a reload", async ({ page }) => {
       await page.goto("/requests")
       await expect(page.locator("h1")).toHaveText("Access Requests")

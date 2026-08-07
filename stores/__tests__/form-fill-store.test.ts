@@ -26,7 +26,14 @@ describe("formFillStore", () => {
     useFormFillStore.getState().registerApplyHandler("expenses_form_fill", handler)
     const applied = useFormFillStore.getState().applyFormFill("expenses_form_fill", { title: "Team lunch" })
     expect(applied).toBe(true)
-    expect(handler).toHaveBeenCalledWith({ title: "Team lunch" })
+    expect(handler).toHaveBeenCalledWith({ title: "Team lunch" }, {})
+  })
+
+  it("forwards apply options to the registered handler", () => {
+    const handler = vi.fn()
+    useFormFillStore.getState().registerApplyHandler("expenses_form_fill", handler)
+    useFormFillStore.getState().applyFormFill("expenses_form_fill", { title: "Team lunch" }, { onlyIfEmpty: true })
+    expect(handler).toHaveBeenCalledWith({ title: "Team lunch" }, { onlyIfEmpty: true })
   })
 
   it("returns false and does not throw when no handler is registered", () => {
@@ -40,7 +47,7 @@ describe("formFillStore", () => {
     useFormFillStore.getState().registerApplyHandler("expenses_form_fill", expensesHandler)
     useFormFillStore.getState().registerApplyHandler("requests_form_fill", requestsHandler)
     useFormFillStore.getState().applyFormFill("requests_form_fill", { title: "DB access" })
-    expect(requestsHandler).toHaveBeenCalledWith({ title: "DB access" })
+    expect(requestsHandler).toHaveBeenCalledWith({ title: "DB access" }, {})
     expect(expensesHandler).not.toHaveBeenCalled()
   })
 

@@ -36,7 +36,7 @@ import { useRequestsStore } from "@/features/requests/store"
 import { requestFormSchema } from "@/features/requests/lib/form"
 import { REQUEST_STATUSES, type RequestStatus } from "@/features/requests/lib/workflow"
 import type { RequestRow } from "@/features/requests/lib/visibility"
-import { useFormFillStore } from "@/stores/form-fill-store"
+import { useRegisterFormFillApply } from "@/stores/form-fill-store"
 
 interface RequestsPanelProps {
   canApprove: boolean
@@ -66,12 +66,7 @@ export function RequestsPanel({ canApprove, email }: RequestsPanelProps) {
 
   useEffect(() => { load() }, [load])
 
-  useEffect(() => {
-    return useFormFillStore.getState().registerApplyHandler("requests_form_fill", (values) => {
-      setForm((prev) => ({ ...prev, ...values }))
-      setFormErrors({})
-    })
-  }, [])
+  useRegisterFormFillApply("requests_form_fill", form, setForm, setFormErrors)
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()

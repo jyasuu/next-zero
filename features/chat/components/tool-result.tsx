@@ -180,7 +180,7 @@ function FormFillView({ toolId, output }: { toolId: string; output: unknown }) {
     const key = JSON.stringify(parsed.values)
     if (appliedRef.current === key) return
     appliedRef.current = key
-    applyFormFill(toolId, parsed.values)
+    applyFormFill(toolId, parsed.values, { onlyIfEmpty: true })
   }, [parsed, autoApplyWhenValid, hasApplyHandler, toolId, applyFormFill])
 
   if (!parsed) return <GenericView output={output} />

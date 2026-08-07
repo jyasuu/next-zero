@@ -129,7 +129,7 @@ describe("ToolResult", () => {
       )
       const applyButton = screen.getByRole("button", { name: "formFill.apply" })
       fireEvent.click(applyButton)
-      expect(handler).toHaveBeenCalledWith({ title: "Team lunch", amount: "mock-amount" })
+      expect(handler).toHaveBeenCalledWith({ title: "Team lunch", amount: "mock-amount" }, {})
     })
 
     it("hides the Apply to form button when no apply handler is registered", () => {
@@ -152,7 +152,7 @@ describe("ToolResult", () => {
           output={{ valid: true, values: { title: "DB access", access: "prod" }, errors: {} }}
         />
       )
-      expect(handler).toHaveBeenCalledWith({ title: "DB access", access: "prod" })
+      expect(handler).toHaveBeenCalledWith({ title: "DB access", access: "prod" }, { onlyIfEmpty: true })
     })
 
     it("does not auto-apply an invalid verdict even when the preference is enabled", () => {
