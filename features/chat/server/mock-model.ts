@@ -41,11 +41,12 @@ export function generateToolArgs(tool: LanguageModelV4FunctionTool): Record<stri
   return args
 }
 
-function intentOf(text: string): "create" | "delete" | "update" | "read" | null {
+function intentOf(text: string): "create" | "delete" | "update" | "fill" | "read" | null {
   const lower = text.toLowerCase()
   if (/(create|add|new|make|insert|register)/.test(lower)) return "create"
   if (/(delete|remove|destroy|erase)/.test(lower)) return "delete"
   if (/(update|edit|change|modify|rename)/.test(lower)) return "update"
+  if (/(fill|validate|check|form|draft)/.test(lower)) return "fill"
   if (/(list|read|show|get|fetch|find|search|all)/.test(lower)) return "read"
   return null
 }
@@ -68,6 +69,10 @@ export function pickToolIntent(
     const tool = tools.find((t) => t.name.includes("update") || t.name.includes(".edit") || t.name.includes("_edit"))
     if (tool) return tool.name
   }
+  if (intent === "fill") {
+    const tool = tools.find((t) => t.name.includes("form"))
+    if (tool) return tool.name
+  }
   if (intent === "read") {
     const tool = tools.find(
       (t) =>
@@ -87,7 +92,7 @@ export function pickToolIntent(
 
 function findToolResultOutput(prompt: LanguageModelV4Message[]): LanguageModelV4ToolResultOutput | null {
   for (const message of prompt) {
-    if (message.role !== "assistant") continue
+    if (message.role !== "tool") continue
     for (const part of message.content) {
       if (part.type === "tool-result") return part.output
     }

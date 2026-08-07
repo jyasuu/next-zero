@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { createMockModel, pickToolIntent, generateToolArgs } from "@/features/chat/server/mock-model"
+import { uiMessagesToModelMessages } from "@/features/chat/lib/model-messages"
 import { TITLE_SYSTEM_PROMPT } from "@/features/chat/lib/title"
 import type { JSONValue } from "@ai-sdk/provider"
 import type { LanguageModelV4CallOptions, LanguageModelV4FunctionTool, LanguageModelV4Message, LanguageModelV4StreamPart } from "@ai-sdk/provider"
@@ -50,6 +51,21 @@ const accountAccessTool: LanguageModelV4FunctionTool = {
   inputSchema: { type: "object", properties: {}, required: [] },
 }
 
+const expensesFormFillTool: LanguageModelV4FunctionTool = {
+  type: "function",
+  name: "expenses_form_fill",
+  description: "Fills the expense form",
+  inputSchema: {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      amount: { type: "string" },
+      justification: { type: "string" },
+    },
+    required: ["title", "amount", "justification"],
+  },
+}
+
 function firstTurn(text: string): LanguageModelV4Message[] {
   return [{ role: "user", content: [{ type: "text", text }] }]
 }
@@ -59,8 +75,11 @@ function continuationTurn(kind: "json" | "error", value: unknown = { ok: true })
     { role: "user", content: [{ type: "text", text: "Create a user" }] },
     {
       role: "assistant",
+      content: [{ type: "tool-call", toolCallId: "call_1", toolName: "users_create", input: "{}" }],
+    },
+    {
+      role: "tool",
       content: [
-        { type: "tool-call", toolCallId: "call_1", toolName: "users_create", input: "{}" },
         {
           type: "tool-result",
           toolCallId: "call_1",
@@ -127,6 +146,23 @@ describe("pickToolIntent", () => {
   it("picks an identity tool for identity questions", () => {
     expect(pickToolIntent("Who am I?", [usersListTool, accountAccessTool])).toBe("account_access")
   })
+
+  it("prefers a form tool for fill intents", () => {
+    expect(pickToolIntent("Fill the expense form", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
+  })
+
+  it("prefers a form tool for validate and check intents", () => {
+    expect(pickToolIntent("Validate this expense amount", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
+    expect(pickToolIntent("Check the form values", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
+  })
+
+  it("keeps create intents on the create tool even when a form tool is present", () => {
+    expect(pickToolIntent("Create an expense", [expensesFormFillTool, usersCreateTool])).toBe("users_create")
+  })
+
+  it("returns null for a fill intent when no form tool is available", () => {
+    expect(pickToolIntent("Fill in the form", [usersListTool, usersCreateTool])).toBeNull()
+  })
 })
 
 describe("generateToolArgs", () => {
@@ -145,6 +181,11 @@ describe("generateToolArgs", () => {
 
   it("returns an empty object when nothing is required", () => {
     expect(generateToolArgs(usersListTool)).toEqual({})
+  })
+
+  it("fills every required field for a form tool", () => {
+    const args = generateToolArgs(expensesFormFillTool)
+    expect(Object.keys(args).sort()).toEqual(["amount", "justification", "title"])
   })
 })
 
@@ -232,6 +273,34 @@ describe("createMockModel doStream", () => {
 
     const deltas = parts.filter((p) => p.type === "text-delta").map((p) => (p as { delta: string }).delta)
     expect(deltas.join("")).toMatch(/refus/i)
+  })
+
+  it("emits a success text on the continuation after a tool executes through the real model-message shape", async () => {
+    const model = createMockModel()
+    const prompt = uiMessagesToModelMessages([
+      { id: "u1", role: "user", parts: [{ type: "text", text: "List users" }] },
+      {
+        id: "a1",
+        role: "assistant",
+        parts: [
+          {
+            type: "tool-users_list",
+            toolCallId: "call_1",
+            input: {},
+            state: "output-available",
+            output: { ok: true, data: [{ id: "1", name: "Ada" }] },
+          } as never,
+        ],
+      },
+    ]) as unknown as LanguageModelV4Message[]
+    const { parts } = await collect(model, {
+      prompt,
+      tools: [usersListTool, usersCreateTool],
+    })
+
+    expect(parts.some((p) => p.type === "tool-call")).toBe(false)
+    const deltas = parts.filter((p) => p.type === "text-delta").map((p) => (p as { delta: string }).delta)
+    expect(deltas.join("")).toMatch(/success|completed/i)
   })
 
   it("responds with text instead of a tool call when no tool matches", async () => {
