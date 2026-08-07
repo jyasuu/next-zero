@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ForbiddenCard } from "@/components/forbidden-card"
+import { useRequestsStore } from "@/features/requests/store"
 import { requestFormSchema } from "@/features/requests/lib/form"
 import { REQUEST_STATUSES, type RequestStatus } from "@/features/requests/lib/workflow"
 import type { RequestRow } from "@/features/requests/lib/visibility"
@@ -52,9 +53,7 @@ const STATUS_BADGE_VARIANT: Record<RequestStatus, "warning" | "success" | "destr
 
 export function RequestsPanel({ canApprove, email }: RequestsPanelProps) {
   const t = useTranslations("requests")
-  const [requests, setRequests] = useState<RequestRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [forbidden, setForbidden] = useState(false)
+  const { rows: requests, loading, forbidden, load, upsert } = useRequestsStore()
   const [filter, setFilter] = useState<RequestFilter>("all")
 
   const [form, setForm] = useState({ title: "", access: "", justification: "" })
@@ -64,18 +63,7 @@ export function RequestsPanel({ canApprove, email }: RequestsPanelProps) {
   const [rejectTarget, setRejectTarget] = useState<RequestRow | null>(null)
   const [rejectComment, setRejectComment] = useState("")
 
-  const fetchRequests = async () => {
-    const res = await fetch("/api/requests")
-    if (res.status === 403) {
-      setForbidden(true)
-      setLoading(false)
-      return
-    }
-    setRequests(await res.json())
-    setLoading(false)
-  }
-
-  useEffect(() => { fetchRequests() }, [])
+  useEffect(() => { load() }, [load])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -96,9 +84,10 @@ export function RequestsPanel({ canApprove, email }: RequestsPanelProps) {
       body: JSON.stringify(parsed.data),
     })
     if (res.ok) {
+      const row = (await res.json()) as RequestRow
+      upsert(row)
       setForm({ title: "", access: "", justification: "" })
       setFormErrors({})
-      fetchRequests()
     }
     setSubmitting(false)
   }
@@ -109,12 +98,12 @@ export function RequestsPanel({ canApprove, email }: RequestsPanelProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, comment }),
     })
-    if (res.ok) fetchRequests()
+    if (res.ok) load()
   }
 
   const cancelRequest = async (id: string) => {
     const res = await fetch(`/api/requests/${id}/cancel`, { method: "POST" })
-    if (res.ok) fetchRequests()
+    if (res.ok) load()
   }
 
   const confirmReject = async () => {

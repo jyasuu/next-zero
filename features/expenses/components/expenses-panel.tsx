@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { ForbiddenCard } from "@/components/forbidden-card"
+import { useExpensesStore } from "@/features/expenses/store"
 import { expenseFormSchema } from "@/features/expenses/lib/form"
 import { EXPENSE_STATUSES, type ExpenseStatus } from "@/features/expenses/lib/workflow"
 import type { ExpenseRow } from "@/features/expenses/lib/visibility"
@@ -52,9 +53,7 @@ const STATUS_BADGE_VARIANT: Record<ExpenseStatus, "warning" | "success" | "destr
 
 export function ExpensesPanel({ canApprove, email }: ExpensesPanelProps) {
   const t = useTranslations("expenses")
-  const [expenses, setExpenses] = useState<ExpenseRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [forbidden, setForbidden] = useState(false)
+  const { rows: expenses, loading, forbidden, load, upsert } = useExpensesStore()
   const [filter, setFilter] = useState<ExpenseFilter>("all")
 
   const [form, setForm] = useState({ title: "", amount: "", justification: "" })
@@ -64,18 +63,7 @@ export function ExpensesPanel({ canApprove, email }: ExpensesPanelProps) {
   const [rejectTarget, setRejectTarget] = useState<ExpenseRow | null>(null)
   const [rejectComment, setRejectComment] = useState("")
 
-  const fetchExpenses = async () => {
-    const res = await fetch("/api/expenses")
-    if (res.status === 403) {
-      setForbidden(true)
-      setLoading(false)
-      return
-    }
-    setExpenses(await res.json())
-    setLoading(false)
-  }
-
-  useEffect(() => { fetchExpenses() }, [])
+  useEffect(() => { load() }, [load])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -96,9 +84,10 @@ export function ExpensesPanel({ canApprove, email }: ExpensesPanelProps) {
       body: JSON.stringify(parsed.data),
     })
     if (res.ok) {
+      const row = (await res.json()) as ExpenseRow
+      upsert(row)
       setForm({ title: "", amount: "", justification: "" })
       setFormErrors({})
-      fetchExpenses()
     }
     setSubmitting(false)
   }
@@ -109,12 +98,12 @@ export function ExpensesPanel({ canApprove, email }: ExpensesPanelProps) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, comment }),
     })
-    if (res.ok) fetchExpenses()
+    if (res.ok) load()
   }
 
   const cancelExpense = async (id: string) => {
     const res = await fetch(`/api/expenses/${id}/cancel`, { method: "POST" })
-    if (res.ok) fetchExpenses()
+    if (res.ok) load()
   }
 
   const confirmReject = async () => {

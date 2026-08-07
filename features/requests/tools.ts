@@ -1,9 +1,21 @@
 import { z } from "zod"
 import type { ChatTool } from "@/features/chat/types"
 import { fetchJson } from "@/features/chat/tools/fetch-json"
+import { createFormFillTool } from "@/features/chat/tools/form-fill"
+import { useRequestsStore } from "@/features/requests/store"
+import { requestFormSchema } from "@/features/requests/lib/form"
 import type { RequestRow } from "@/features/requests/lib/visibility"
 
+export const requestsFormFillTool = createFormFillTool({
+  id: "requests_form_fill",
+  name: "Fill request form",
+  description:
+    "Fills the access-request form with proposed values and returns the validation result without submitting. Fields: title (text), access (text), justification (text).",
+  schema: requestFormSchema,
+})
+
 export const requestsTools: ChatTool[] = [
+  requestsFormFillTool,
   {
     id: "requests_create",
     name: "File access request",
@@ -20,10 +32,12 @@ export const requestsTools: ChatTool[] = [
         access: string
         justification: string
       }
-      return fetchJson<RequestRow>("/api/requests", {
+      const result = await fetchJson<RequestRow>("/api/requests", {
         method: "POST",
         body: JSON.stringify({ title, access, justification }),
       })
+      if (result.ok) useRequestsStore.getState().upsert(result.data)
+      return result
     },
   },
   {

@@ -1,9 +1,21 @@
 import { z } from "zod"
 import type { ChatTool } from "@/features/chat/types"
 import { fetchJson } from "@/features/chat/tools/fetch-json"
+import { createFormFillTool } from "@/features/chat/tools/form-fill"
+import { useExpensesStore } from "@/features/expenses/store"
+import { expenseFormSchema } from "@/features/expenses/lib/form"
 import type { ExpenseRow } from "@/features/expenses/lib/visibility"
 
+export const expensesFormFillTool = createFormFillTool({
+  id: "expenses_form_fill",
+  name: "Fill expense form",
+  description:
+    "Fills the expense form with proposed values and returns the validation result without submitting. Fields: title (text), amount (decimal like 42.50), justification (text).",
+  schema: expenseFormSchema,
+})
+
 export const expensesTools: ChatTool[] = [
+  expensesFormFillTool,
   {
     id: "expenses_create",
     name: "File expense claim",
@@ -20,10 +32,12 @@ export const expensesTools: ChatTool[] = [
         amount: string
         justification: string
       }
-      return fetchJson<ExpenseRow>("/api/expenses", {
+      const result = await fetchJson<ExpenseRow>("/api/expenses", {
         method: "POST",
         body: JSON.stringify({ title, amount, justification }),
       })
+      if (result.ok) useExpensesStore.getState().upsert(result.data)
+      return result
     },
   },
   {
