@@ -82,6 +82,19 @@ test.describe("AI form-fill and state sync", () => {
       await expect(page.locator("#request-justification")).toHaveValue("")
     })
 
+    test("enabling auto-apply does not retroactively fill from an existing verdict", async ({ page }) => {
+      await page.goto("/requests")
+      await expect(page.locator("h1")).toHaveText("Access Requests")
+      await openWidget(page)
+      await ask(page, "Fill the access request form")
+      await expect(page.locator(WIDGET).getByText("Valid").first()).toBeVisible()
+      await expect(page.locator("#request-title")).toHaveValue("")
+
+      await page.locator(WIDGET).getByRole("switch", { name: "Auto-apply" }).click()
+      await expect(page.locator("#request-title")).toHaveValue("")
+      await expect(page.locator("#request-access")).toHaveValue("")
+    })
+
     test("an approved AI create appears in the requests list without a reload", async ({ page }) => {
       await page.goto("/requests")
       await expect(page.locator("h1")).toHaveText("Access Requests")

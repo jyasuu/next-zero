@@ -17,6 +17,7 @@ import {
   type ToolPartLike,
 } from "@/features/chat/lib/parts"
 import { validateToolArgs, shouldRequireApproval } from "@/features/chat/lib/approval"
+import { autoApplyFormFillResult } from "@/features/chat/lib/form-fill"
 import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
 import { useFormFillStore } from "@/stores/form-fill-store"
 
@@ -66,6 +67,7 @@ export function ChatPanel() {
         state: "output-available",
         output: result.data ?? { ok: true },
       })
+      autoApplyFormFillResult(tool.id, result.data)
     } else {
       addToolOutput({
         tool: tool.id,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { CheckCircle2, UserRound } from "lucide-react"
@@ -171,17 +171,7 @@ function FormFillView({ toolId, output }: { toolId: string; output: unknown }) {
   const t = useTranslations("chat")
   const parsed = parseOrNull(formFillOutputSchema, output)
   const hasApplyHandler = useFormFillStore((s) => s.hasApplyHandler(toolId))
-  const autoApplyWhenValid = useFormFillStore((s) => s.autoApplyWhenValid)
   const applyFormFill = useFormFillStore((s) => s.applyFormFill)
-  const appliedRef = useRef<string | null>(null)
-
-  useEffect(() => {
-    if (!parsed?.valid || !autoApplyWhenValid || !hasApplyHandler) return
-    const key = JSON.stringify(parsed.values)
-    if (appliedRef.current === key) return
-    appliedRef.current = key
-    applyFormFill(toolId, parsed.values, { onlyIfEmpty: true })
-  }, [parsed, autoApplyWhenValid, hasApplyHandler, toolId, applyFormFill])
 
   if (!parsed) return <GenericView output={output} />
   const hasErrors = Object.keys(parsed.errors).length > 0

@@ -142,7 +142,7 @@ describe("ToolResult", () => {
       expect(screen.queryByRole("button", { name: "formFill.apply" })).toBeNull()
     })
 
-    it("auto-applies a valid verdict when the preference is enabled", () => {
+    it("does not auto-apply on render even when the preference is enabled", () => {
       const handler = vi.fn()
       useFormFillStore.getState().setAutoApplyWhenValid(true)
       useFormFillStore.getState().registerApplyHandler("requests_form_fill", handler)
@@ -150,19 +150,6 @@ describe("ToolResult", () => {
         <ToolResult
           toolId="requests_form_fill"
           output={{ valid: true, values: { title: "DB access", access: "prod" }, errors: {} }}
-        />
-      )
-      expect(handler).toHaveBeenCalledWith({ title: "DB access", access: "prod" }, { onlyIfEmpty: true })
-    })
-
-    it("does not auto-apply an invalid verdict even when the preference is enabled", () => {
-      const handler = vi.fn()
-      useFormFillStore.getState().setAutoApplyWhenValid(true)
-      useFormFillStore.getState().registerApplyHandler("expenses_form_fill", handler)
-      render(
-        <ToolResult
-          toolId="expenses_form_fill"
-          output={{ valid: false, values: { title: "x", amount: "mock-amount" }, errors: { amount: "amount is invalid" } }}
         />
       )
       expect(handler).not.toHaveBeenCalled()
