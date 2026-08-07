@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { MessageSquare, Plus, Send, Square, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useChatProvider } from "@/features/chat/components/chat-provider"
 import { Markdown, CopyButton } from "@/features/chat/components/markdown"
@@ -17,6 +18,7 @@ import {
 } from "@/features/chat/lib/parts"
 import { validateToolArgs, shouldRequireApproval } from "@/features/chat/lib/approval"
 import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
+import { useFormFillStore } from "@/stores/form-fill-store"
 
 export function ChatPanel() {
   const t = useTranslations("chat")
@@ -39,6 +41,10 @@ export function ChatPanel() {
   const [input, setInput] = useState("")
   const processedRef = useRef<Set<string>>(new Set())
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const autoApplyWhenValid = useFormFillStore((s) => s.autoApplyWhenValid)
+  const setAutoApplyWhenValid = useFormFillStore((s) => s.setAutoApplyWhenValid)
+  const hasAnyApplyHandler = useFormFillStore((s) => s.hasAnyApplyHandler)
 
   const executeTool = async (tool: ChatTool, part: ToolPartLike) => {
     const args = parseToolInput(part.input)
@@ -145,6 +151,15 @@ export function ChatPanel() {
             ))}
           </SelectContent>
         </Select>
+        {hasAnyApplyHandler && (
+          <div className="flex shrink-0 items-center" title={t("formFill.autoApply")}>
+            <Switch
+              checked={autoApplyWhenValid}
+              onCheckedChange={setAutoApplyWhenValid}
+              aria-label={t("formFill.autoApply")}
+            />
+          </div>
+        )}
         <Button variant="ghost" size="icon" aria-label={t("newChat")} onClick={newChat}>
           <Plus className="h-4 w-4" />
         </Button>

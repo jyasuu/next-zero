@@ -41,6 +41,33 @@ test.describe("AI form-fill and state sync", () => {
       await expect(page.locator(WIDGET).getByText("Awaiting your approval")).toHaveCount(0)
     })
 
+    test("Apply to form fills the page inputs", async ({ page }) => {
+      await page.goto("/expenses")
+      await expect(page.locator("h1")).toHaveText("Expenses")
+      await openWidget(page)
+      await ask(page, "Fill the expense form")
+
+      await expect(page.locator(WIDGET).getByText("Invalid", { exact: true }).first()).toBeVisible()
+      await page.locator(WIDGET).getByRole("button", { name: "Apply to form" }).first().click()
+
+      await expect(page.locator("#expense-title")).toHaveValue("Mock title")
+      await expect(page.locator("#expense-amount")).toHaveValue("mock-amount")
+      await expect(page.locator("#expense-justification")).toHaveValue("mock-justification")
+    })
+
+    test("auto-apply fills the request form when the verdict is valid", async ({ page }) => {
+      await page.goto("/requests")
+      await expect(page.locator("h1")).toHaveText("Access Requests")
+      await openWidget(page)
+      await page.locator(WIDGET).getByRole("switch", { name: "Auto-apply" }).click()
+      await ask(page, "Fill the access request form")
+
+      await expect(page.locator(WIDGET).getByText("Valid").first()).toBeVisible()
+      await expect(page.locator("#request-title")).toHaveValue("Mock title")
+      await expect(page.locator("#request-access")).toHaveValue("mock-access")
+      await expect(page.locator("#request-justification")).toHaveValue("mock-justification")
+    })
+
     test("an approved AI create appears in the requests list without a reload", async ({ page }) => {
       await page.goto("/requests")
       await expect(page.locator("h1")).toHaveText("Access Requests")

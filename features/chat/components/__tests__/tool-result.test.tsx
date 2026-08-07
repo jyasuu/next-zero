@@ -1,11 +1,16 @@
 import React from "react"
-import { describe, it, expect, vi } from "vitest"
-import { render, screen, within } from "@testing-library/react"
+import { describe, it, expect, vi, beforeEach } from "vitest"
+import { render, screen, within, fireEvent } from "@testing-library/react"
 import { ToolResult } from "@/features/chat/components/tool-result"
+import { useFormFillStore } from "@/stores/form-fill-store"
 
 vi.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }))
+
+beforeEach(() => {
+  useFormFillStore.setState({ handlers: {}, hasAnyApplyHandler: false, autoApplyWhenValid: false })
+})
 
 const WHOAMI = { email: "admin@localhost", role: "Admin", isAdmin: true }
 const USERS = [
@@ -111,6 +116,56 @@ describe("ToolResult", () => {
         />
       )
       expect(screen.getByText("formFill.valid")).not.toBeNull()
+    })
+
+    it("renders an Apply to form button and applies the values on click", () => {
+      const handler = vi.fn()
+      useFormFillStore.getState().registerApplyHandler("expenses_form_fill", handler)
+      render(
+        <ToolResult
+          toolId="expenses_form_fill"
+          output={{ valid: false, values: { title: "Team lunch", amount: "mock-amount" }, errors: { amount: "amount is invalid" } }}
+        />
+      )
+      const applyButton = screen.getByRole("button", { name: "formFill.apply" })
+      fireEvent.click(applyButton)
+      expect(handler).toHaveBeenCalledWith({ title: "Team lunch", amount: "mock-amount" })
+    })
+
+    it("hides the Apply to form button when no apply handler is registered", () => {
+      render(
+        <ToolResult
+          toolId="expenses_form_fill"
+          output={{ valid: true, values: { title: "Team lunch" }, errors: {} }}
+        />
+      )
+      expect(screen.queryByRole("button", { name: "formFill.apply" })).toBeNull()
+    })
+
+    it("auto-applies a valid verdict when the preference is enabled", () => {
+      const handler = vi.fn()
+      useFormFillStore.getState().setAutoApplyWhenValid(true)
+      useFormFillStore.getState().registerApplyHandler("requests_form_fill", handler)
+      render(
+        <ToolResult
+          toolId="requests_form_fill"
+          output={{ valid: true, values: { title: "DB access", access: "prod" }, errors: {} }}
+        />
+      )
+      expect(handler).toHaveBeenCalledWith({ title: "DB access", access: "prod" })
+    })
+
+    it("does not auto-apply an invalid verdict even when the preference is enabled", () => {
+      const handler = vi.fn()
+      useFormFillStore.getState().setAutoApplyWhenValid(true)
+      useFormFillStore.getState().registerApplyHandler("expenses_form_fill", handler)
+      render(
+        <ToolResult
+          toolId="expenses_form_fill"
+          output={{ valid: false, values: { title: "x", amount: "mock-amount" }, errors: { amount: "amount is invalid" } }}
+        />
+      )
+      expect(handler).not.toHaveBeenCalled()
     })
   })
 

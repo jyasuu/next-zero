@@ -427,7 +427,9 @@
     "formFill": {
       "valid": "Valid",
       "invalid": "Invalid",
-      "noErrors": "No field errors"
+      "noErrors": "No field errors",
+      "apply": "Apply to form",
+      "autoApply": "Auto-apply"
     }
   }
 }

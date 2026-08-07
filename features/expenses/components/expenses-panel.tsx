@@ -36,6 +36,7 @@ import { useExpensesStore } from "@/features/expenses/store"
 import { expenseFormSchema } from "@/features/expenses/lib/form"
 import { EXPENSE_STATUSES, type ExpenseStatus } from "@/features/expenses/lib/workflow"
 import type { ExpenseRow } from "@/features/expenses/lib/visibility"
+import { useFormFillStore } from "@/stores/form-fill-store"
 
 interface ExpensesPanelProps {
   canApprove: boolean
@@ -64,6 +65,13 @@ export function ExpensesPanel({ canApprove, email }: ExpensesPanelProps) {
   const [rejectComment, setRejectComment] = useState("")
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    return useFormFillStore.getState().registerApplyHandler("expenses_form_fill", (values) => {
+      setForm((prev) => ({ ...prev, ...values }))
+      setFormErrors({})
+    })
+  }, [])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()

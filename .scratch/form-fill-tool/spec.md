@@ -1,6 +1,6 @@
 # Spec: AI form-fill tool that validates against page form state
 
-**Status:** ready-for-agent
+**Status:** resolved (shipped; extended post-review with apply-to-form + auto-apply, see "Apply to form" below)
 
 ## Problem Statement
 
@@ -70,6 +70,17 @@ No new schema. The factory is given the page's existing `expenseFormSchema` / `r
 - Add a `FormFillView` renderer to `features/chat/components/tool-result.tsx` keyed by `expenses_form_fill` and `requests_form_fill`: a valid/invalid badge plus a per-field list of values and their errors. Unknown form-fill ids fall back to the existing `GenericView` (key-value grid), so a future page gets a decent render with zero extra work.
 - i18n: new `chat` namespace keys (en/zh) for the verdict labels ("Valid", "Invalid", "No field errors") alongside the existing tool-card strings.
 
+### Apply to form (post-review extension, user-requested)
+
+The base tool is side-effect-free and never touches the DOM. To make the verdict actionable, the user asked for a recommended **"Apply to form"** button on the verdict card plus a persisted **auto-apply** preference:
+
+- New shared seam `stores/form-fill-store.ts` (zustand, `persist`): a client-side registry of apply handlers keyed by tool id, `applyFormFill(toolId, values)`, `hasApplyHandler(toolId)`, `hasAnyApplyHandler`, and a persisted `autoApplyWhenValid` boolean (`partialize` keeps only the preference in `localStorage`; handlers are transient).
+- `FormFillView` renders an "Apply to form" button when an apply handler is registered for its tool id and the output carries values. Clicking calls `applyFormFill(toolId, values)`.
+- When `autoApplyWhenValid` is enabled, a valid verdict applies its values automatically (once per distinct values-set, guarded by a ref so re-renders do not re-apply).
+- Each form panel registers an apply handler on mount (`registerApplyHandler("expenses_form_fill" | "requests_form_fill", (values) => setForm(...) + clear errors)`) and unregisters on unmount. The page form remains the sole owner of its field state; the seam only forwards proposed values.
+- The chat widget header shows a compact auto-apply `Switch` whenever any apply handler is registered (i.e. on form pages), so the preference is discoverable before the first fill.
+- i18n: `chat.formFill.apply` ("Apply to form" / "应用到表单") and `chat.formFill.autoApply` ("Auto-apply" / "自动应用").
+
 ### Page registration (thin, follows the `business-feature` skill)
 
 - `features/expenses/tools.ts`: add `expenses_form_fill` built from `expenseFormSchema`.
@@ -96,13 +107,12 @@ No new schema. The factory is given the page's existing `expenseFormSchema` / `r
 
 - Submitting the form or persisting anything — the tool validates proposed data only.
 - Reading the form's current live state (what the user has already typed in the panel); only proposed fill data is validated.
-- Live DOM access — querying or setting rendered HTML inputs; "page element" means the form's component-state definition, not the DOM.
+- Live DOM access — the seam forwards proposed values to page form state (`setForm`), never writes to rendered HTML inputs directly; "page element" means the form's component-state definition, not the DOM.
 - Other page-element types (buttons, tables, selects, filters) — form fill is the first page-element capability.
-- Pre-filling the actual page inputs from the tool result.
 - Approval-policy overrides; the form tool is `auto` because it is pure.
 
 ## Further Notes
 
 - The `ChatTool` contract is the template's extension point; this feature stays entirely inside it — one factory, one routing regex, one renderer, two registrations. That is the whole diff surface.
 - The all-required `inputSchema` is deliberate: it makes the stub produce a full fill, which is what makes both e2e branches (valid on `/requests`, invalid on `/expenses`) deterministic without network or fixture plumbing.
-- If a future tool needs to read live form state or actually drive the form, it should be `approval: "always"` and likely needs a shared form-state seam (like `useChatStore`); both are explicitly deferred.
+- If a future tool needs to read live form state, it should be `approval: "always"` and likely needs a shared form-state seam (like `useChatStore`); reading is still deferred. Writing proposed values is already covered by the `form-fill-store` apply seam added post-review.

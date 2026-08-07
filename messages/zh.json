@@ -427,7 +427,9 @@
     "formFill": {
       "valid": "有效",
       "invalid": "无效",
-      "noErrors": "无字段错误"
+      "noErrors": "无字段错误",
+      "apply": "应用到表单",
+      "autoApply": "自动应用"
     }
   }
 }

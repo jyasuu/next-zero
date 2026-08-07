@@ -1,11 +1,13 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
 import { CheckCircle2, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { useFormFillStore } from "@/stores/form-fill-store"
 import {
   Table,
   TableBody,
@@ -165,11 +167,25 @@ function DeletedView() {
   )
 }
 
-function FormFillView({ output }: { output: unknown }) {
+function FormFillView({ toolId, output }: { toolId: string; output: unknown }) {
   const t = useTranslations("chat")
   const parsed = parseOrNull(formFillOutputSchema, output)
+  const hasApplyHandler = useFormFillStore((s) => s.hasApplyHandler(toolId))
+  const autoApplyWhenValid = useFormFillStore((s) => s.autoApplyWhenValid)
+  const applyFormFill = useFormFillStore((s) => s.applyFormFill)
+  const appliedRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!parsed?.valid || !autoApplyWhenValid || !hasApplyHandler) return
+    const key = JSON.stringify(parsed.values)
+    if (appliedRef.current === key) return
+    appliedRef.current = key
+    applyFormFill(toolId, parsed.values)
+  }, [parsed, autoApplyWhenValid, hasApplyHandler, toolId, applyFormFill])
+
   if (!parsed) return <GenericView output={output} />
   const hasErrors = Object.keys(parsed.errors).length > 0
+  const hasValues = Object.keys(parsed.values).length > 0
   return (
     <div className="space-y-2 rounded-md border bg-background p-3">
       <div className="flex items-center gap-2">
@@ -189,6 +205,11 @@ function FormFillView({ output }: { output: unknown }) {
           )}
         </div>
       ))}
+      {hasApplyHandler && hasValues && (
+        <Button variant="outline" size="sm" className="mt-1" onClick={() => applyFormFill(toolId, parsed.values)}>
+          {t("formFill.apply")}
+        </Button>
+      )}
     </div>
   )
 }
@@ -237,8 +258,8 @@ const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
     const parsed = parseOrNull(deletedOutputSchema, output)
     return parsed ? <DeletedView /> : <GenericView output={output} />
   },
-  expenses_form_fill: (output) => <FormFillView output={output} />,
-  requests_form_fill: (output) => <FormFillView output={output} />,
+  expenses_form_fill: (output) => <FormFillView toolId="expenses_form_fill" output={output} />,
+  requests_form_fill: (output) => <FormFillView toolId="requests_form_fill" output={output} />,
 }
 
 export function hasToolRenderer(toolId: string): boolean {
