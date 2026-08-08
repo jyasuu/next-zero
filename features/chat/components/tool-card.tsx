@@ -82,10 +82,10 @@ export function ToolCard({ tool, part, onApprove, onDeny, onAnswer, onDismiss }:
           />
         ) : (
           <>
-            {part.input !== undefined && <ToolArguments input={part.input} />}
+            {part.input !== undefined && !isQuestionTool && <ToolArguments input={part.input} />}
 
             {isOutputAvailable(part) && part.output !== undefined && (
-              <ToolResult toolId={toolId} output={part.output} />
+              <ToolResult toolId={toolId} output={part.output} input={part.input} />
             )}
 
             {isOutputError(part) && (

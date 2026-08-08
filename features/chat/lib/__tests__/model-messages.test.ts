@@ -172,4 +172,20 @@ describe("uiMessagesToModelMessages", () => {
     ])
     expect(modelMessages.map((m) => m.role)).toEqual(["user", "assistant"])
   })
+
+  it("emits a single tool call for duplicate parts sharing a toolCallId", () => {
+    const message: UIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { ...toolPart({ state: "output-available", output: { ok: true, data: { id: "99" } } }) } as never,
+        { ...toolPart({ state: "output-available", output: { ok: true, data: { id: "99" } } }) } as never,
+      ],
+    }
+    const modelMessages = uiMessagesToModelMessages([message])
+    const assistant = modelMessages[0] as { content: { type: string }[] }
+    const tool = modelMessages[1] as { content: { type: string }[] }
+    expect(assistant.content.filter((p) => p.type === "tool-call")).toHaveLength(1)
+    expect(tool.content.filter((p) => p.type === "tool-result")).toHaveLength(1)
+  })
 })

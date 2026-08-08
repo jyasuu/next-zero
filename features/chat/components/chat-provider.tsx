@@ -17,6 +17,7 @@ import { useChatStore } from "@/stores/chat-store"
 import { mergeTools, type ToolScopeRegistration } from "@/features/chat/lib/scopes"
 import { serializeTool } from "@/features/chat/lib/serialize"
 import { fetchApi } from "@/features/chat/lib/api"
+import { dedupeToolParts } from "@/features/chat/lib/parts"
 import { globalTools } from "@/features/chat/tools/global"
 import type { ChatSession, ChatTool, SerializedChatTool } from "@/features/chat/types"
 import { useBrowserNotifications } from "@/features/notifications/hooks/use-browser-notifications"
@@ -144,7 +145,7 @@ export function ChatProvider({ children, claims }: ChatProviderProps) {
           body: {
             ...body,
             id,
-            messages: msgs,
+            messages: msgs.map((message) => ({ ...message, parts: dedupeToolParts(message.parts) })),
             sessionId,
             tools: toolRegistryToSerialized(registryRef.current),
           },

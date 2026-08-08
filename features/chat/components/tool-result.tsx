@@ -32,10 +32,12 @@ import {
   usersListOutputSchema,
   whoamiOutputSchema,
   type QuestionOutput,
+  type QuestionPrompt,
   type ToolId,
   type UserRow,
   type WhoAmIOutput,
 } from "@/features/chat/types"
+import { questionsFromInput } from "@/features/chat/lib/question-flow"
 
 function unwrapData(output: unknown): unknown {
   if (
@@ -169,10 +171,28 @@ function DeletedView() {
   )
 }
 
-function QuestionView({ output }: { output: QuestionOutput }) {
+function QuestionView({ output, questions }: { output: QuestionOutput; questions: QuestionPrompt[] }) {
+  const t = useTranslations("chat")
+  if (questions.length === 0) {
+    return (
+      <div className="space-y-1 rounded-md border bg-background p-3">
+        <p className="text-xs text-muted-foreground">{output.summary}</p>
+      </div>
+    )
+  }
   return (
-    <div className="space-y-1 rounded-md border bg-background p-3">
-      <p className="text-xs text-muted-foreground">{output.summary}</p>
+    <div className="space-y-2 rounded-md border bg-background p-3">
+      {questions.map((question, index) => {
+        const answers = output.answers[index] ?? []
+        return (
+          <div key={index} className="text-xs">
+            <p className="font-medium">{question.question}</p>
+            <p className="text-muted-foreground">
+              {answers.length > 0 ? answers.join(", ") : t("question.unanswered")}
+            </p>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -235,7 +255,7 @@ function parseOrNull<T>(schema: z.ZodType<T>, output: unknown): T | null {
   return parsed.success ? parsed.data : null
 }
 
-type ToolRenderer = (output: unknown) => ReactNode
+type ToolRenderer = (output: unknown, input?: unknown) => ReactNode
 
 function renderUserDetail(output: unknown): ReactNode {
   const parsed = parseOrNull(userRowOutputSchema, output)
@@ -260,9 +280,10 @@ const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
   },
   expenses_form_fill: (output) => <FormFillView toolId="expenses_form_fill" output={output} />,
   requests_form_fill: (output) => <FormFillView toolId="requests_form_fill" output={output} />,
-  question: (output) => {
+  question: (output, input) => {
     const parsed = parseOrNull(questionOutputSchema, output)
-    return parsed ? <QuestionView output={parsed} /> : <GenericView output={output} />
+    if (!parsed) return <GenericView output={output} />
+    return <QuestionView output={parsed} questions={questionsFromInput(input)} />
   },
 }
 
@@ -270,8 +291,8 @@ export function hasToolRenderer(toolId: string): boolean {
   return toolId in TOOL_TEMPLATES
 }
 
-export function ToolResult({ toolId, output }: { toolId: string; output: unknown }) {
+export function ToolResult({ toolId, output, input }: { toolId: string; output: unknown; input?: unknown }) {
   const template = (TOOL_TEMPLATES as Record<string, ToolRenderer | undefined>)[toolId]
-  if (template) return <div className="pt-2">{template(output)}</div>
+  if (template) return <div className="pt-2">{template(output, input)}</div>
   return <div className="pt-2">{<GenericView output={output} />}</div>
 }

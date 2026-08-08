@@ -52,6 +52,25 @@ export function isOutputError(part: ToolPartLike): boolean {
   return part.state === "output-error"
 }
 
+export function dedupeToolParts<T>(parts: readonly T[]): T[] {
+  const seen = new Set<string>()
+  const result: T[] = []
+  for (const part of parts) {
+    if (
+      typeof part === "object" &&
+      part !== null &&
+      "toolCallId" in part &&
+      typeof (part as { toolCallId?: unknown }).toolCallId === "string"
+    ) {
+      const toolCallId = (part as { toolCallId: string }).toolCallId
+      if (seen.has(toolCallId)) continue
+      seen.add(toolCallId)
+    }
+    result.push(part)
+  }
+  return result
+}
+
 export function isOutputAvailable(part: ToolPartLike): boolean {
   return part.state === "output-available"
 }

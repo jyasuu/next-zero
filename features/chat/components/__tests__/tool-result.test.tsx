@@ -202,4 +202,42 @@ describe("ToolResult", () => {
       expect(container.textContent).toContain("Done")
     })
   })
+
+  describe("question", () => {
+    const OUTPUT = {
+      answers: [["Reports & exports"], [], ["A specific report or dataset"]],
+      summary: "User has answered your questions.",
+    }
+    const INPUT = {
+      questions: [
+        { question: "What would you like to focus on?", header: "Focus", options: [{ label: "Reports & exports", description: "d" }] },
+        { question: "How should we proceed?", header: "Approach", options: [{ label: "Fast", description: "d" }] },
+        { question: "Which area?", header: "Area", options: [{ label: "A specific report or dataset", description: "d" }] },
+      ],
+    }
+
+    it("renders per-question text with the selected answers instead of raw JSON", () => {
+      render(<ToolResult toolId="question" output={OUTPUT} input={INPUT} />)
+      expect(screen.queryByText(/"questions":/)).toBeNull()
+      expect(screen.getByText("What would you like to focus on?")).not.toBeNull()
+      expect(screen.getByText("Reports & exports")).not.toBeNull()
+      expect(screen.getByText("Which area?")).not.toBeNull()
+      expect(screen.getByText("A specific report or dataset")).not.toBeNull()
+    })
+
+    it("marks unanswered questions", () => {
+      render(<ToolResult toolId="question" output={OUTPUT} input={INPUT} />)
+      expect(screen.getByText("question.unanswered")).not.toBeNull()
+    })
+
+    it("falls back to the summary when no questions can be derived from input", () => {
+      render(<ToolResult toolId="question" output={OUTPUT} />)
+      expect(screen.getByText(OUTPUT.summary)).not.toBeNull()
+    })
+
+    it("falls back to the generic view for malformed output", () => {
+      render(<ToolResult toolId="question" output="oops" input={INPUT} />)
+      expect(screen.getByText("oops")).not.toBeNull()
+    })
+  })
 })

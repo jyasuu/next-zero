@@ -1,5 +1,6 @@
 import type { UIMessage, ModelMessage, JSONValue } from "ai"
 import {
+  dedupeToolParts,
   isOutputAvailable,
   isOutputError,
   isToolPart,
@@ -30,7 +31,7 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
       Extract<ModelMessage, { role: "tool" }>["content"]
     > = []
 
-    for (const part of message.parts) {
+    for (const part of dedupeToolParts(message.parts)) {
       if (part.type === "text") {
         content.push({ type: "text", text: part.text })
         continue

@@ -440,7 +440,8 @@
       "next": "Next",
       "submit": "Submit",
       "progress": "Question {current} of {total}",
-      "awaitingAnswer": "Awaiting your answer"
+      "awaitingAnswer": "Awaiting your answer",
+      "unanswered": "Unanswered"
     }
   }
 }
