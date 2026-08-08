@@ -11,7 +11,7 @@ import { useChatProvider } from "@/features/chat/components/chat-provider"
 import { Markdown, CopyButton } from "@/features/chat/components/markdown"
 import { ToolCard } from "@/features/chat/components/tool-card"
 import {
-  dedupeToolParts,
+  dedupeToolPartsAcrossMessages,
   isToolPart,
   parseToolInput,
   toolNameFromPart,
@@ -223,7 +223,7 @@ export function ChatPanel() {
           </div>
         )}
 
-        {messages.map((message) => (
+        {dedupeToolPartsAcrossMessages(messages).map((message) => (
           <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
             {message.role === "user" ? (
               <div className="max-w-[85%] rounded-2xl bg-primary px-4 py-2.5 text-sm text-primary-foreground">
@@ -234,7 +234,7 @@ export function ChatPanel() {
               </div>
             ) : (
               <div className="group relative max-w-[95%] space-y-3">
-                {dedupeToolParts(message.parts).map((part, index) => {
+                {message.parts.map((part, index) => {
                   if (part.type === "text") {
                     return (
                       <div key={index} className="relative rounded-2xl bg-muted/60 px-4 py-2.5">

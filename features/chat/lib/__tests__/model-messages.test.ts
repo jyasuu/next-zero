@@ -188,4 +188,29 @@ describe("uiMessagesToModelMessages", () => {
     expect(assistant.content.filter((p) => p.type === "tool-call")).toHaveLength(1)
     expect(tool.content.filter((p) => p.type === "tool-result")).toHaveLength(1)
   })
+
+  it("emits one tool call for the same toolCallId repeated across messages", () => {
+    const first: UIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { ...toolPart({ state: "output-available", output: { ok: true, data: { id: "99" } } }) } as never,
+      ],
+    }
+    const second: UIMessage = {
+      id: "a2",
+      role: "assistant",
+      parts: [
+        { ...toolPart({ state: "output-available", output: { ok: true, data: { id: "99" } } }) } as never,
+        { ...toolPart({ toolCallId: "call_2", state: "input-available" }) } as never,
+      ],
+    }
+    const modelMessages = uiMessagesToModelMessages([first, second])
+    expect(
+      modelMessages.flatMap((m) => (m.content as { type: string }[]).filter((p) => p.type === "tool-call"))
+    ).toHaveLength(2)
+    expect(
+      modelMessages.flatMap((m) => (m.content as { type: string }[]).filter((p) => p.type === "tool-result"))
+    ).toHaveLength(1)
+  })
 })

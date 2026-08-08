@@ -10,6 +10,7 @@ import {
 
 export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[] {
   const modelMessages: ModelMessage[] = []
+  const seenToolCallIds = new Set<string>()
 
   for (const message of messages) {
     if (message.role === "user") {
@@ -31,7 +32,7 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
       Extract<ModelMessage, { role: "tool" }>["content"]
     > = []
 
-    for (const part of dedupeToolParts(message.parts)) {
+    for (const part of dedupeToolParts(message.parts, seenToolCallIds)) {
       if (part.type === "text") {
         content.push({ type: "text", text: part.text })
         continue

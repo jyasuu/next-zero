@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { dedupeToolParts } from "@/features/chat/lib/parts"
+import { dedupeToolParts, dedupeToolPartsAcrossMessages } from "@/features/chat/lib/parts"
 
 describe("dedupeToolParts", () => {
   it("keeps text parts and unique tool parts", () => {
@@ -35,5 +35,31 @@ describe("dedupeToolParts", () => {
   it("handles parts without a toolCallId", () => {
     const parts = [{ type: "text", text: "a" }, { type: "step-start" }]
     expect(dedupeToolParts(parts)).toHaveLength(2)
+  })
+})
+
+describe("dedupeToolPartsAcrossMessages", () => {
+  it("drops a tool part whose toolCallId already appeared in an earlier message", () => {
+    const messages = [
+      { id: "a1", parts: [{ type: "tool-question", toolCallId: "call-1", state: "output-available" }] },
+      { id: "a2", parts: [
+        { type: "step-start" },
+        { type: "tool-question", toolCallId: "call-1", state: "output-available" },
+        { type: "tool-question", toolCallId: "call-2", state: "input-available" },
+      ] },
+    ]
+    const result = dedupeToolPartsAcrossMessages(messages)
+    expect(result[0].parts).toHaveLength(1)
+    expect(result[1].parts.map((part) => part.type)).toEqual(["step-start", "tool-question"])
+    expect((result[1].parts[1] as { toolCallId: string }).toolCallId).toBe("call-2")
+  })
+
+  it("keeps unique tool parts across all messages", () => {
+    const messages = [
+      { id: "a1", parts: [{ type: "tool-users_get", toolCallId: "call-a", state: "output-available" }] },
+      { id: "a2", parts: [{ type: "tool-users_get", toolCallId: "call-b", state: "output-available" }] },
+    ]
+    const result = dedupeToolPartsAcrossMessages(messages)
+    expect(result.flatMap((m) => m.parts)).toHaveLength(2)
   })
 })

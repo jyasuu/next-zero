@@ -52,8 +52,7 @@ export function isOutputError(part: ToolPartLike): boolean {
   return part.state === "output-error"
 }
 
-export function dedupeToolParts<T>(parts: readonly T[]): T[] {
-  const seen = new Set<string>()
+export function dedupeToolParts<T>(parts: readonly T[], seen: Set<string> = new Set<string>()): T[] {
   const result: T[] = []
   for (const part of parts) {
     if (
@@ -69,6 +68,13 @@ export function dedupeToolParts<T>(parts: readonly T[]): T[] {
     result.push(part)
   }
   return result
+}
+
+export function dedupeToolPartsAcrossMessages<T extends { parts: readonly unknown[] }>(
+  messages: readonly T[]
+): T[] {
+  const seen = new Set<string>()
+  return messages.map((message) => ({ ...message, parts: dedupeToolParts(message.parts, seen) }))
 }
 
 export function isOutputAvailable(part: ToolPartLike): boolean {
