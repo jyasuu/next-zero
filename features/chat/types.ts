@@ -12,7 +12,10 @@ export interface ChatTool {
   description: string
   inputSchema: z.ZodTypeAny
   approval: ToolApprovalPolicy
-  execute: (args: unknown) => ToolExecutionResult | Promise<ToolExecutionResult>
+  execute: (
+    args: unknown,
+    context?: { toolCallId: string }
+  ) => ToolExecutionResult | Promise<ToolExecutionResult>
 }
 
 export interface ChatSession {
@@ -54,6 +57,30 @@ export const formFillOutputSchema = z.object({
   errors: z.record(z.string(), z.string()),
 })
 
+export const questionOptionSchema = z.object({
+  label: z.string(),
+  description: z.string(),
+})
+
+export const questionPromptSchema = z.object({
+  question: z.string(),
+  header: z.string(),
+  options: z.array(questionOptionSchema),
+  multiple: z.boolean().optional(),
+  custom: z.boolean().optional(),
+})
+
+export type QuestionOption = z.infer<typeof questionOptionSchema>
+export type QuestionPrompt = z.infer<typeof questionPromptSchema>
+
+export const questionOutputSchema = z.object({
+  answers: z.array(z.array(z.string())),
+  summary: z.string(),
+})
+
+export type QuestionOutput = z.infer<typeof questionOutputSchema>
+export type QuestionAnswers = string[][]
+
 export type UserRow = z.infer<typeof userRowOutputSchema>
 export type WhoAmIOutput = z.infer<typeof whoamiOutputSchema>
 
@@ -66,5 +93,6 @@ export type KnownToolOutput =
   | { tool: "users_delete"; output: z.infer<typeof deletedOutputSchema> }
   | { tool: "expenses_form_fill"; output: z.infer<typeof formFillOutputSchema> }
   | { tool: "requests_form_fill"; output: z.infer<typeof formFillOutputSchema> }
+  | { tool: "question"; output: QuestionOutput }
 
 export type ToolId = KnownToolOutput["tool"]

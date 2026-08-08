@@ -27,9 +27,11 @@ import {
 import {
   deletedOutputSchema,
   formFillOutputSchema,
+  questionOutputSchema,
   userRowOutputSchema,
   usersListOutputSchema,
   whoamiOutputSchema,
+  type QuestionOutput,
   type ToolId,
   type UserRow,
   type WhoAmIOutput,
@@ -167,6 +169,14 @@ function DeletedView() {
   )
 }
 
+function QuestionView({ output }: { output: QuestionOutput }) {
+  return (
+    <div className="space-y-1 rounded-md border bg-background p-3">
+      <p className="text-xs text-muted-foreground">{output.summary}</p>
+    </div>
+  )
+}
+
 function FormFillView({ toolId, output }: { toolId: string; output: unknown }) {
   const t = useTranslations("chat")
   const parsed = parseOrNull(formFillOutputSchema, output)
@@ -250,6 +260,10 @@ const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
   },
   expenses_form_fill: (output) => <FormFillView toolId="expenses_form_fill" output={output} />,
   requests_form_fill: (output) => <FormFillView toolId="requests_form_fill" output={output} />,
+  question: (output) => {
+    const parsed = parseOrNull(questionOutputSchema, output)
+    return parsed ? <QuestionView output={parsed} /> : <GenericView output={output} />
+  },
 }
 
 export function hasToolRenderer(toolId: string): boolean {

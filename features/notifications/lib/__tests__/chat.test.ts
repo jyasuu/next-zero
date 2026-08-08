@@ -6,9 +6,11 @@ import {
   lastAssistantFirstLine,
 } from "@/features/notifications/lib/chat"
 import { usersTools } from "@/features/chat/tools/users"
+import { globalTools } from "@/features/chat/tools/global"
 
 const usersCreate = usersTools.find((t) => t.id === "users_create")!
 const usersList = usersTools.find((t) => t.id === "users_list")!
+const questionTool = globalTools.find((t) => t.id === "question")!
 
 const userText = (text: string): UIMessage => ({
   id: "u1",
@@ -53,6 +55,21 @@ describe("isTurnAwaitingApproval", () => {
 
   it("is true when a write tool is pending approval", () => {
     expect(isTurnAwaitingApproval([pendingToolMessage()], [usersCreate])).toBe(true)
+  })
+
+  it("is true when a question tool is awaiting the user's answer", () => {
+    const message = pendingToolMessage({ type: "tool-question", toolName: "question" })
+    expect(isTurnAwaitingApproval([message], [questionTool])).toBe(true)
+  })
+
+  it("is false once the question tool has been answered", () => {
+    const message = pendingToolMessage({
+      type: "tool-question",
+      toolName: "question",
+      state: "output-available",
+      output: { answers: [["Engineering"]], summary: "User has answered" },
+    })
+    expect(isTurnAwaitingApproval([message], [questionTool])).toBe(false)
   })
 
   it("is false when the pending tool auto-executes", () => {

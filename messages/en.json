@@ -430,6 +430,17 @@
       "noErrors": "No field errors",
       "apply": "Apply to form",
       "autoApply": "Auto-apply"
+    },
+    "question": {
+      "typeOwnAnswer": "Type your own answer",
+      "placeholder": "Type your answer...",
+      "done": "Done",
+      "dismiss": "Dismiss",
+      "back": "Back",
+      "next": "Next",
+      "submit": "Submit",
+      "progress": "Question {current} of {total}",
+      "awaitingAnswer": "Awaiting your answer"
     }
   }
 }

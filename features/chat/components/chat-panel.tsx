@@ -17,8 +17,14 @@ import {
   type ToolPartLike,
 } from "@/features/chat/lib/parts"
 import { validateToolArgs, shouldRequireApproval } from "@/features/chat/lib/approval"
+import { formatAnswersSummary, questionsFromInput } from "@/features/chat/lib/question-flow"
+import {
+  QUESTION_DISMISSED_MESSAGE,
+  answerQuestion,
+  dismissQuestion,
+} from "@/features/chat/lib/pending-question"
 import { autoApplyFormFillResult } from "@/features/chat/lib/form-fill"
-import type { ChatTool, ToolExecutionResult } from "@/features/chat/types"
+import type { ChatTool, QuestionAnswers, ToolExecutionResult } from "@/features/chat/types"
 import { useFormFillStore } from "@/stores/form-fill-store"
 
 export function ChatPanel() {
@@ -55,7 +61,7 @@ export function ChatPanel() {
       result = { ok: false, error: validated.error }
     } else {
       try {
-        result = await tool.execute(validated.args)
+        result = await tool.execute(validated.args, { toolCallId: part.toolCallId })
       } catch (e) {
         result = { ok: false, error: e instanceof Error ? e.message : "Tool execution failed" }
       }
@@ -114,6 +120,36 @@ export function ChatPanel() {
       toolCallId: part.toolCallId,
       state: "output-error",
       errorText: t("deniedMessage"),
+    })
+  }
+
+  const answeredRef = useRef<Set<string>>(new Set())
+
+  const handleAnswer = (tool: ChatTool, part: ToolPartLike, answers: QuestionAnswers) => {
+    if (answeredRef.current.has(part.toolCallId)) return
+    answeredRef.current.add(part.toolCallId)
+    if (answerQuestion(part.toolCallId, answers)) return
+    const questions = questionsFromInput(part.input)
+    addToolOutput({
+      tool: tool.id,
+      toolCallId: part.toolCallId,
+      state: "output-available",
+      output: {
+        answers,
+        summary: formatAnswersSummary(questions, answers),
+      },
+    })
+  }
+
+  const handleDismiss = (tool: ChatTool, part: ToolPartLike) => {
+    if (answeredRef.current.has(part.toolCallId)) return
+    answeredRef.current.add(part.toolCallId)
+    if (dismissQuestion(part.toolCallId)) return
+    addToolOutput({
+      tool: tool.id,
+      toolCallId: part.toolCallId,
+      state: "output-error",
+      errorText: QUESTION_DISMISSED_MESSAGE,
     })
   }
 
@@ -218,6 +254,12 @@ export function ChatPanel() {
                         part={part}
                         onApprove={() => approve(tool, part)}
                         onDeny={() => deny(part)}
+                        onAnswer={(answers) => {
+                          if (tool) handleAnswer(tool, part, answers)
+                        }}
+                        onDismiss={() => {
+                          if (tool) handleDismiss(tool, part)
+                        }}
                       />
                     )
                   }

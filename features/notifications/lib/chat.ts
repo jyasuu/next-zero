@@ -22,7 +22,7 @@ export function isTurnAwaitingApproval(messages: UIMessage[], tools: ChatTool[])
     const toolId = toolNameFromPart(part)
     if (!toolId) return false
     const tool = tools.find((t) => t.id === toolId)
-    return tool !== undefined && shouldRequireApproval(tool)
+    return tool !== undefined && (shouldRequireApproval(tool) || tool.id === "question")
   })
 }
 

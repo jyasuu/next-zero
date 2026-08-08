@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { useChatStore } from "@/stores/chat-store"
 import type { ChatTool, WhoAmIOutput } from "@/features/chat/types"
+import { questionTool } from "@/features/chat/tools/question"
 
 const whoamiSchema = z.object({})
 
@@ -25,4 +26,5 @@ export const globalTools: ChatTool[] = [
       return { ok: true, data: output }
     },
   },
+  questionTool,
 ]
