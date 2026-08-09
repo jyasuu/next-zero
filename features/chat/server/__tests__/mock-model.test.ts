@@ -77,6 +77,48 @@ const skillTool: LanguageModelV4FunctionTool = {
   },
 }
 
+const skillsCreateTool: LanguageModelV4FunctionTool = {
+  type: "function",
+  name: "skills_create",
+  description: "Creates a skill",
+  inputSchema: {
+    type: "object",
+    properties: {
+      name: { type: "string" },
+      description: { type: "string" },
+      content: { type: "string" },
+    },
+    required: ["name", "description", "content"],
+  },
+}
+
+const skillsUpdateTool: LanguageModelV4FunctionTool = {
+  type: "function",
+  name: "skills_update",
+  description: "Updates a skill",
+  inputSchema: {
+    type: "object",
+    properties: {
+      id: { type: "string" },
+      name: { type: "string" },
+      description: { type: "string" },
+      content: { type: "string" },
+    },
+    required: ["id", "name", "description", "content"],
+  },
+}
+
+const skillsDeleteTool: LanguageModelV4FunctionTool = {
+  type: "function",
+  name: "skills_delete",
+  description: "Deletes a skill",
+  inputSchema: {
+    type: "object",
+    properties: { id: { type: "string" } },
+    required: ["id"],
+  },
+}
+
 function firstTurn(text: string): LanguageModelV4Message[] {
   return [{ role: "user", content: [{ type: "text", text }] }]
 }
@@ -162,10 +204,16 @@ describe("pickToolIntent", () => {
     expect(pickToolIntent("Fill the expense form", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
   })
 
-  it("prefers the skill tool for skill and workflow intents", () => {
-    expect(pickToolIntent("Load the expense-review skill", [usersListTool, skillTool])).toBe("skill")
-    expect(pickToolIntent("Follow my review workflow", [usersListTool, skillTool])).toBe("skill")
-    expect(pickToolIntent("Run the approval procedure", [usersListTool, skillTool])).toBe("skill")
+  it("prefers the skill load tool for skill and workflow intents", () => {
+    expect(pickToolIntent("Load the expense-review skill", [usersListTool, skillTool, skillsCreateTool])).toBe("skill")
+    expect(pickToolIntent("Follow my review workflow", [usersListTool, skillTool, skillsCreateTool])).toBe("skill")
+    expect(pickToolIntent("Run the approval procedure", [usersListTool, skillTool, skillsCreateTool])).toBe("skill")
+  })
+
+  it("picks the authoring tool for create, update, and delete skill intents", () => {
+    expect(pickToolIntent("Create a new skill for expense review", [usersListTool, skillTool, skillsCreateTool])).toBe("skills_create")
+    expect(pickToolIntent("Update my expense-review skill", [usersListTool, skillTool, skillsUpdateTool])).toBe("skills_update")
+    expect(pickToolIntent("Delete the expense-review skill", [usersListTool, skillTool, skillsDeleteTool])).toBe("skills_delete")
   })
 
   it("returns null for a skill intent when no skill tool is available", () => {
@@ -211,6 +259,21 @@ describe("generateToolArgs", () => {
 
   it("fills the skill name for the skill tool", () => {
     expect(generateToolArgs(skillTool)).toEqual({ name: MOCK_SKILL_NAME })
+  })
+
+  it("fills valid args for the skill authoring tools", () => {
+    expect(generateToolArgs(skillsCreateTool)).toEqual({
+      name: MOCK_SKILL_NAME,
+      description: "Mock description",
+      content: "Mock content",
+    })
+    expect(generateToolArgs(skillsUpdateTool)).toEqual({
+      id: "1",
+      name: MOCK_SKILL_NAME,
+      description: "Mock description",
+      content: "Mock content",
+    })
+    expect(generateToolArgs(skillsDeleteTool)).toEqual({ id: "1" })
   })
 })
 

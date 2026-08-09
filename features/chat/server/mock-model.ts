@@ -24,6 +24,15 @@ export function generateToolArgs(tool: LanguageModelV4FunctionTool): Record<stri
   if (tool.name === "skill") {
     return { name: MOCK_SKILL_NAME }
   }
+  if (tool.name === "skills_create") {
+    return { name: MOCK_SKILL_NAME, description: "Mock description", content: "Mock content" }
+  }
+  if (tool.name === "skills_update") {
+    return { id: "1", name: MOCK_SKILL_NAME, description: "Mock description", content: "Mock content" }
+  }
+  if (tool.name === "skills_delete") {
+    return { id: "1" }
+  }
   const schema = tool.inputSchema as JSONSchema7
   const required = schema.required ?? []
   const properties = (schema.properties ?? {}) as Record<string, JSONSchema7>
@@ -48,12 +57,12 @@ export function generateToolArgs(tool: LanguageModelV4FunctionTool): Record<stri
 
 function intentOf(text: string): "create" | "delete" | "update" | "fill" | "read" | "skill" | null {
   const lower = text.toLowerCase()
-  if (/(skill|workflow|procedure)/.test(lower)) return "skill"
   if (/(create|add|new|make|insert|register)/.test(lower)) return "create"
   if (/(delete|remove|destroy|erase)/.test(lower)) return "delete"
   if (/(update|edit|change|modify|rename)/.test(lower)) return "update"
   if (/(fill|validate|check|form|draft)/.test(lower)) return "fill"
   if (/(list|read|show|get|fetch|find|search|all)/.test(lower)) return "read"
+  if (/(skill|workflow|procedure)/.test(lower)) return "skill"
   return null
 }
 
@@ -64,7 +73,7 @@ export function pickToolIntent(
   if (tools.length === 0) return null
   const intent = intentOf(text)
   if (intent === "skill") {
-    const tool = tools.find((t) => /skill/.test(t.name))
+    const tool = tools.find((t) => t.name === "skill" || /load/i.test(t.name))
     if (tool) return tool.name
   }
   if (intent === "create") {
