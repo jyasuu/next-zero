@@ -53,9 +53,12 @@ function fieldErrorKey(
   }
 }
 
-function firstFieldIssue(issue: ZodIssue | undefined, field: string): { code: string } | undefined {
-  if (!issue || issue.path[0] !== field) return undefined
-  return issue
+function fieldErrors(issues: ZodIssue[]): Partial<Record<"name" | "description" | "content", string | undefined>> {
+  return {
+    name: fieldErrorKey("name", issues.find((issue) => issue.path[0] === "name")),
+    description: fieldErrorKey("description", issues.find((issue) => issue.path[0] === "description")),
+    content: fieldErrorKey("content", issues.find((issue) => issue.path[0] === "content")),
+  }
 }
 
 export function SkillsPanel() {
@@ -84,12 +87,7 @@ export function SkillsPanel() {
     event.preventDefault()
     const parsed = skillSchema.safeParse(form)
     if (!parsed.success) {
-      const issues = parsed.error.issues
-      setFormErrors({
-        name: fieldErrorKey("name", firstFieldIssue(issues[0], "name")),
-        description: fieldErrorKey("description", firstFieldIssue(issues[0], "description")),
-        content: fieldErrorKey("content", firstFieldIssue(issues[0], "content")),
-      })
+      setFormErrors(fieldErrors(parsed.error.issues))
       return
     }
     setSubmitting(true)
@@ -130,12 +128,7 @@ export function SkillsPanel() {
     if (!editing) return
     const parsed = skillSchema.safeParse(editForm)
     if (!parsed.success) {
-      const issues = parsed.error.issues
-      setEditErrors({
-        name: fieldErrorKey("name", firstFieldIssue(issues[0], "name")),
-        description: fieldErrorKey("description", firstFieldIssue(issues[0], "description")),
-        content: fieldErrorKey("content", firstFieldIssue(issues[0], "content")),
-      })
+      setEditErrors(fieldErrors(parsed.error.issues))
       return
     }
     setSaving(true)
