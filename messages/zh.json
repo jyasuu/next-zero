@@ -26,6 +26,7 @@
     "reports": "报表分析",
     "requests": "访问申请",
     "expenses": "费用报销",
+    "skills": "技能库",
     "roles": "角色管理",
     "systemHealth": "系统健康",
     "settings": "系统设置",
@@ -326,6 +327,44 @@
       "justificationRequired": "请填写报销理由。"
     }
   },
+  "skills": {
+    "title": "技能库",
+    "description": "为聊天助手编写可复用的工作流",
+    "createTitle": "创建技能",
+    "nameField": "名称",
+    "namePlaceholder": "例如 expense-review",
+    "descriptionField": "描述",
+    "descriptionPlaceholder": "用于让助手匹配该技能的一句话摘要",
+    "contentField": "内容",
+    "contentPlaceholder": "技能加载后助手遵循的 Markdown 指令",
+    "submit": "创建技能",
+    "listTitle": "我的技能",
+    "name": "名称",
+    "description": "描述",
+    "updated": "更新时间",
+    "actions": "操作",
+    "empty": "暂无技能。编写一个工作流开始吧。",
+    "edit": "编辑",
+    "delete": "删除",
+    "save": "保存",
+    "cancel": "取消",
+    "editTitle": "编辑技能",
+    "deleteTitle": "删除技能",
+    "deleteDescription": "删除“{name}”？助手将不再推送该工作流。",
+    "deleteConfirm": "删除",
+    "nameExists": "已存在同名的技能。",
+    "createFailed": "无法创建技能。",
+    "saveFailed": "无法保存技能。",
+    "deleteFailed": "无法删除技能。",
+    "errors": {
+      "nameRequired": "请填写名称。",
+      "nameInvalid": "名称只能包含字母、数字、短横线或下划线。",
+      "nameTooLong": "名称最多 50 个字符。",
+      "descriptionRequired": "请填写描述。",
+      "descriptionTooLong": "描述最多 200 个字符。",
+      "contentRequired": "请填写内容。"
+    }
+  },
   "roles": {
     "title": "角色管理",
     "description": "描述",
@@ -442,6 +481,9 @@
       "progress": "第 {current} 题，共 {total} 题",
       "awaitingAnswer": "等待您的回答",
       "unanswered": "未回答"
+    },
+    "skill": {
+      "loaded": "已加载"
     }
   }
 }

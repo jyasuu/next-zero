@@ -81,6 +81,14 @@ export const questionOutputSchema = z.object({
 export type QuestionOutput = z.infer<typeof questionOutputSchema>
 export type QuestionAnswers = string[][]
 
+export const skillOutputSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  content: z.string(),
+})
+
+export type SkillOutput = z.infer<typeof skillOutputSchema>
+
 export type UserRow = z.infer<typeof userRowOutputSchema>
 export type WhoAmIOutput = z.infer<typeof whoamiOutputSchema>
 
@@ -94,5 +102,6 @@ export type KnownToolOutput =
   | { tool: "expenses_form_fill"; output: z.infer<typeof formFillOutputSchema> }
   | { tool: "requests_form_fill"; output: z.infer<typeof formFillOutputSchema> }
   | { tool: "question"; output: QuestionOutput }
+  | { tool: "skill"; output: SkillOutput }
 
 export type ToolId = KnownToolOutput["tool"]

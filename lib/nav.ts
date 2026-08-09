@@ -3,6 +3,7 @@ import {
   Activity,
   BarChart3,
   Bell,
+  BookMarked,
   ClipboardList,
   Key,
   LayoutDashboard,
@@ -43,6 +44,7 @@ export const iconRegistry: Record<string, LucideIcon> = {
   User,
   Bell,
   MessageSquare,
+  BookMarked,
 }
 
 export const navSections: NavSection[] = [
@@ -62,6 +64,7 @@ export const navSections: NavSection[] = [
       { href: "/roles", i18nKey: "nav.roles", icon: "Shield", requiredAction: "roles:Read" },
       { href: "/requests", i18nKey: "nav.requests", icon: "ClipboardList", requiredAction: "requests:Read" },
       { href: "/expenses", i18nKey: "nav.expenses", icon: "Receipt", requiredAction: "expenses:Read" },
+      { href: "/skills", i18nKey: "nav.skills", icon: "BookMarked" },
       { href: "/api-keys", i18nKey: "nav.apiKeys", icon: "Key", requiredAction: "api-keys:Read" },
     ],
   },

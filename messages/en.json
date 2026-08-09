@@ -26,6 +26,7 @@
     "reports": "Reports",
     "requests": "Requests",
     "expenses": "Expenses",
+    "skills": "Skills",
     "roles": "Roles",
     "systemHealth": "System Health",
     "settings": "Settings",
@@ -326,6 +327,44 @@
       "justificationRequired": "Justification is required."
     }
   },
+  "skills": {
+    "title": "Skills",
+    "description": "Author reusable workflows for the chat copilot",
+    "createTitle": "Create a skill",
+    "nameField": "Name",
+    "namePlaceholder": "e.g. expense-review",
+    "descriptionField": "Description",
+    "descriptionPlaceholder": "One-line summary the assistant uses to match this skill",
+    "contentField": "Content",
+    "contentPlaceholder": "Markdown instructions the assistant follows when the skill is loaded",
+    "submit": "Create skill",
+    "listTitle": "Your skills",
+    "name": "Name",
+    "description": "Description",
+    "updated": "Updated",
+    "actions": "Actions",
+    "empty": "No skills yet. Author a workflow to get started.",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editTitle": "Edit skill",
+    "deleteTitle": "Delete skill",
+    "deleteDescription": "Delete \"{name}\"? The assistant will stop advertising this workflow.",
+    "deleteConfirm": "Delete",
+    "nameExists": "A skill with this name already exists.",
+    "createFailed": "Could not create the skill.",
+    "saveFailed": "Could not save the skill.",
+    "deleteFailed": "Could not delete the skill.",
+    "errors": {
+      "nameRequired": "Name is required.",
+      "nameInvalid": "Name may only contain letters, numbers, dashes, or underscores.",
+      "nameTooLong": "Name must be at most 50 characters.",
+      "descriptionRequired": "Description is required.",
+      "descriptionTooLong": "Description must be at most 200 characters.",
+      "contentRequired": "Content is required."
+    }
+  },
   "roles": {
     "title": "Role Management",
     "description": "Description",
@@ -442,6 +481,9 @@
       "progress": "Question {current} of {total}",
       "awaitingAnswer": "Awaiting your answer",
       "unanswered": "Unanswered"
+    },
+    "skill": {
+      "loaded": "Loaded"
     }
   }
 }

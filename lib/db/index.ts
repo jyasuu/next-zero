@@ -66,6 +66,17 @@ const SCHEMA_STATEMENTS: string[] = [
     decided_at TEXT
   );`,
   `CREATE INDEX IF NOT EXISTS idx_expenses_requester ON expenses (requester_email, created_at);`,
+  `CREATE TABLE IF NOT EXISTS skills (
+    id TEXT PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_skills_user_name ON skills (user_email, name);`,
+  `CREATE INDEX IF NOT EXISTS idx_skills_user_updated ON skills (user_email, updated_at);`,
   `INSERT INTO roles (id, name, description, permissions, policies, user_count) VALUES
     ('1', 'Admin', 'Full system access', '["read","write","delete","manage_users","manage_roles"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","users:Write","users:Create","users:Delete","users:Manage","roles:Read","roles:Manage","audit:Read","api-keys:Read","api-keys:Manage","reports:Read","reports:Export","settings:Read","system:Read","notifications:Read","requests:Read","requests:Create","requests:Approve","expenses:Read","expenses:Create","expenses:Approve"]}]}]', 3),
     ('2', 'Editor', 'Can create and edit content', '["read","write"]', '[{"Version":"1","Statement":[{"Effect":"Allow","Action":["dashboard:Read","users:Read","audit:Read","reports:Read","settings:Read","notifications:Read","requests:Read","requests:Create","requests:Approve","expenses:Read","expenses:Create","expenses:Approve"]}]}]', 4),

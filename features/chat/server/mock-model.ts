@@ -18,7 +18,12 @@ const FIXTURES_BY_PROPERTY: Record<string, string> = {
   password: "mock-password",
 }
 
+export const MOCK_SKILL_NAME = "expense-review"
+
 export function generateToolArgs(tool: LanguageModelV4FunctionTool): Record<string, unknown> {
+  if (tool.name === "skill") {
+    return { name: MOCK_SKILL_NAME }
+  }
   const schema = tool.inputSchema as JSONSchema7
   const required = schema.required ?? []
   const properties = (schema.properties ?? {}) as Record<string, JSONSchema7>
@@ -41,8 +46,9 @@ export function generateToolArgs(tool: LanguageModelV4FunctionTool): Record<stri
   return args
 }
 
-function intentOf(text: string): "create" | "delete" | "update" | "fill" | "read" | null {
+function intentOf(text: string): "create" | "delete" | "update" | "fill" | "read" | "skill" | null {
   const lower = text.toLowerCase()
+  if (/(skill|workflow|procedure)/.test(lower)) return "skill"
   if (/(create|add|new|make|insert|register)/.test(lower)) return "create"
   if (/(delete|remove|destroy|erase)/.test(lower)) return "delete"
   if (/(update|edit|change|modify|rename)/.test(lower)) return "update"
@@ -57,6 +63,10 @@ export function pickToolIntent(
 ): string | null {
   if (tools.length === 0) return null
   const intent = intentOf(text)
+  if (intent === "skill") {
+    const tool = tools.find((t) => /skill/.test(t.name))
+    if (tool) return tool.name
+  }
   if (intent === "create") {
     const tool = tools.find((t) => t.name.includes("create") || t.name.includes(".add") || t.name.includes("_add"))
     if (tool) return tool.name

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { createMockModel, pickToolIntent, generateToolArgs } from "@/features/chat/server/mock-model"
+import { createMockModel, pickToolIntent, generateToolArgs, MOCK_SKILL_NAME } from "@/features/chat/server/mock-model"
 import { uiMessagesToModelMessages } from "@/features/chat/lib/model-messages"
 import { TITLE_SYSTEM_PROMPT } from "@/features/chat/lib/title"
 import type { JSONValue } from "@ai-sdk/provider"
@@ -63,6 +63,17 @@ const expensesFormFillTool: LanguageModelV4FunctionTool = {
       justification: { type: "string" },
     },
     required: ["title", "amount", "justification"],
+  },
+}
+
+const skillTool: LanguageModelV4FunctionTool = {
+  type: "function",
+  name: "skill",
+  description: "Loads a user-authored skill",
+  inputSchema: {
+    type: "object",
+    properties: { name: { type: "string" } },
+    required: ["name"],
   },
 }
 
@@ -151,6 +162,16 @@ describe("pickToolIntent", () => {
     expect(pickToolIntent("Fill the expense form", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
   })
 
+  it("prefers the skill tool for skill and workflow intents", () => {
+    expect(pickToolIntent("Load the expense-review skill", [usersListTool, skillTool])).toBe("skill")
+    expect(pickToolIntent("Follow my review workflow", [usersListTool, skillTool])).toBe("skill")
+    expect(pickToolIntent("Run the approval procedure", [usersListTool, skillTool])).toBe("skill")
+  })
+
+  it("returns null for a skill intent when no skill tool is available", () => {
+    expect(pickToolIntent("Load the expense-review skill", [usersListTool, usersCreateTool])).toBeNull()
+  })
+
   it("prefers a form tool for validate and check intents", () => {
     expect(pickToolIntent("Validate this expense amount", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
     expect(pickToolIntent("Check the form values", [usersListTool, usersCreateTool, expensesFormFillTool])).toBe("expenses_form_fill")
@@ -186,6 +207,10 @@ describe("generateToolArgs", () => {
   it("fills every required field for a form tool", () => {
     const args = generateToolArgs(expensesFormFillTool)
     expect(Object.keys(args).sort()).toEqual(["amount", "justification", "title"])
+  })
+
+  it("fills the skill name for the skill tool", () => {
+    expect(generateToolArgs(skillTool)).toEqual({ name: MOCK_SKILL_NAME })
   })
 })
 
@@ -313,5 +338,20 @@ describe("createMockModel doStream", () => {
     expect(parts.some((p) => p.type === "tool-call")).toBe(false)
     const deltas = parts.filter((p) => p.type === "text-delta").map((p) => (p as { delta: string }).delta)
     expect(deltas.join("")).toMatch(/no tool/i)
+  })
+
+  it("emits a skill tool call with the mock skill name for a skill intent", async () => {
+    const model = createMockModel()
+    const { parts } = await collect(model, {
+      prompt: firstTurn("Follow my expense review workflow"),
+      tools: [skillTool],
+    })
+
+    const toolCall = parts.find((p) => p.type === "tool-call")
+    expect(toolCall).toBeDefined()
+    if (toolCall && toolCall.type === "tool-call") {
+      expect(toolCall.toolName).toBe("skill")
+      expect(JSON.parse(toolCall.input)).toEqual({ name: MOCK_SKILL_NAME })
+    }
   })
 })

@@ -89,6 +89,7 @@ describe("buildSystemPrompt", () => {
     granted: ["dashboard:Read", "reports:Read"],
     customPrompt: "",
     tools: [listUsersTool, createUserTool],
+    skills: [],
   }
 
   it("injects the caller identity and role", () => {
@@ -131,5 +132,24 @@ describe("buildSystemPrompt", () => {
   it("notes that write tools require approval", () => {
     const prompt = buildSystemPrompt(base)
     expect(prompt).toMatch(/approval/i)
+  })
+
+  it("does not advertise skills when the caller has none", () => {
+    const prompt = buildSystemPrompt(base)
+    expect(prompt).not.toContain("Available skills:")
+  })
+
+  it("advertises the caller's skills with name and description", () => {
+    const prompt = buildSystemPrompt({
+      ...base,
+      skills: [
+        { name: "expense-review", description: "How to review an expense request" },
+        { name: "export-report", description: "Export and reconcile a report" },
+      ],
+    })
+    expect(prompt).toContain("Available skills:")
+    expect(prompt).toContain("- expense-review: How to review an expense request")
+    expect(prompt).toContain("- export-report: Export and reconcile a report")
+    expect(prompt).toMatch(/call the skill tool/)
   })
 })

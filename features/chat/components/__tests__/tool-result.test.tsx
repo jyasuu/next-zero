@@ -240,4 +240,29 @@ describe("ToolResult", () => {
       expect(screen.getByText("oops")).not.toBeNull()
     })
   })
+
+  describe("skill", () => {
+    it("renders the loaded skill as a card instead of raw JSON", () => {
+      render(
+        <ToolResult
+          toolId="skill"
+          output={{
+            name: "expense-review",
+            description: "How to review an expense request",
+            content: "# Expense review\n\n1. Fetch the receipt",
+          }}
+        />
+      )
+      expect(screen.queryByText(/"content":/)).toBeNull()
+      expect(screen.getByText("expense-review")).not.toBeNull()
+      expect(screen.getByText("How to review an expense request")).not.toBeNull()
+      expect(screen.getByText("skill.loaded")).not.toBeNull()
+      expect(screen.queryByText("# Expense review")).toBeNull()
+    })
+
+    it("falls back to the generic view for malformed output", () => {
+      render(<ToolResult toolId="skill" output="oops" />)
+      expect(screen.getByText("oops")).not.toBeNull()
+    })
+  })
 })

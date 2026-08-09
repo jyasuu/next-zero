@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { z } from "zod"
 import { useTranslations } from "next-intl"
-import { CheckCircle2, UserRound } from "lucide-react"
+import { CheckCircle2, BookMarked, UserRound } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,11 +28,13 @@ import {
   deletedOutputSchema,
   formFillOutputSchema,
   questionOutputSchema,
+  skillOutputSchema,
   userRowOutputSchema,
   usersListOutputSchema,
   whoamiOutputSchema,
   type QuestionOutput,
   type QuestionPrompt,
+  type SkillOutput,
   type ToolId,
   type UserRow,
   type WhoAmIOutput,
@@ -197,6 +199,26 @@ function QuestionView({ output, questions }: { output: QuestionOutput; questions
   )
 }
 
+function SkillView({ output }: { output: SkillOutput }) {
+  const t = useTranslations("chat")
+  return (
+    <div className="flex items-start gap-3 rounded-md border bg-background p-3">
+      <Avatar className="h-9 w-9">
+        <AvatarFallback className="bg-primary/10 text-primary">
+          <BookMarked className="h-4 w-4" />
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{output.name}</span>
+          <Badge variant="success">{t("skill.loaded")}</Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{output.description}</p>
+      </div>
+    </div>
+  )
+}
+
 function FormFillView({ toolId, output }: { toolId: string; output: unknown }) {
   const t = useTranslations("chat")
   const parsed = parseOrNull(formFillOutputSchema, output)
@@ -284,6 +306,10 @@ const TOOL_TEMPLATES: { [K in ToolId]: ToolRenderer } = {
     const parsed = parseOrNull(questionOutputSchema, output)
     if (!parsed) return <GenericView output={output} />
     return <QuestionView output={parsed} questions={questionsFromInput(input)} />
+  },
+  skill: (output) => {
+    const parsed = parseOrNull(skillOutputSchema, output)
+    return parsed ? <SkillView output={parsed} /> : <GenericView output={output} />
   },
 }
 

@@ -74,6 +74,7 @@ describe("TITLE_SYSTEM_PROMPT / isTitleSystemPrompt", () => {
       granted: ["users:Read"],
       customPrompt: "",
       tools: [],
+      skills: [],
     })
     expect(isTitleSystemPrompt(chatPrompt)).toBe(false)
   })

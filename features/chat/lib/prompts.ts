@@ -1,6 +1,7 @@
 import { ability, type RolePolicies } from "@/lib/acl"
 import { permissionDomains } from "@/lib/constants"
 import type { SerializedChatTool } from "@/features/chat/types"
+import { formatSkillsAdvertisement, type SkillSummary } from "@/features/skills/lib/skill"
 
 export function listGrantedActions(role: RolePolicies, isAdmin: boolean): string[] {
   const { can } = ability(role, isAdmin)
@@ -20,6 +21,7 @@ export interface SystemPromptInput {
   granted: string[]
   customPrompt: string
   tools: SerializedChatTool[]
+  skills: SkillSummary[]
 }
 
 export function buildSystemPrompt({
@@ -29,6 +31,7 @@ export function buildSystemPrompt({
   granted,
   customPrompt,
   tools,
+  skills,
 }: SystemPromptInput): string {
   const toolLines = tools
     .map(
@@ -49,6 +52,13 @@ export function buildSystemPrompt({
 
   if (tools.length > 0) {
     sections.push(`Available tools:\n${toolLines}`)
+  }
+
+  const skillAdvertisement = formatSkillsAdvertisement(skills ?? [])
+  if (skillAdvertisement) {
+    sections.push(
+      `${skillAdvertisement}\nTo follow a workflow, call the skill tool with the name of the matching skill; loading it requires the user's approval.`
+    )
   }
 
   if (customPrompt.trim().length > 0) {

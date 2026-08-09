@@ -6,6 +6,8 @@ import { requireSession } from "@/features/chat/server/auth"
 import { getCustomPrompt } from "@/features/chat/server/settings"
 import { getRoleWithPolicies } from "@/lib/roles"
 import { listGrantedActions } from "@/features/chat/lib/prompts"
+import { summarizeSkills } from "@/features/skills/lib/skill"
+import { getSkillsByOwner } from "@/features/skills/server"
 
 export const dynamic = "force-dynamic"
 
@@ -28,9 +30,10 @@ export async function POST(request: Request) {
   const role = await getRoleWithPolicies(roleName)
   const granted = listGrantedActions(role ?? { permissions: [] }, isAdmin)
   const customPrompt = await getCustomPrompt(session.user.email ?? "")
+  const skills = summarizeSkills(await getSkillsByOwner(session.user.email ?? ""))
 
   return streamChatResponse(
-    { email: session.user.email ?? "", roleName, isAdmin, granted, customPrompt, tools },
+    { email: session.user.email ?? "", roleName, isAdmin, granted, customPrompt, tools, skills },
     messages as UIMessage[]
   )
 }
