@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest"
-import { dedupeToolParts, dedupeToolPartsAcrossMessages } from "@/features/chat/lib/parts"
+import {
+  dedupeToolParts,
+  dedupeToolPartsAcrossMessages,
+  filterEmptyTextParts,
+  isEmptyTextPart,
+} from "@/features/chat/lib/parts"
 
 describe("dedupeToolParts", () => {
   it("keeps text parts and unique tool parts", () => {
@@ -61,5 +66,47 @@ describe("dedupeToolPartsAcrossMessages", () => {
     ]
     const result = dedupeToolPartsAcrossMessages(messages)
     expect(result.flatMap((m) => m.parts)).toHaveLength(2)
+  })
+})
+
+describe("isEmptyTextPart", () => {
+  it("is false for text with content", () => {
+    expect(isEmptyTextPart({ type: "text", text: "hello" })).toBe(false)
+    expect(isEmptyTextPart({ type: "text", text: "  hello  " })).toBe(false)
+  })
+
+  it("is true for empty or whitespace-only text", () => {
+    expect(isEmptyTextPart({ type: "text", text: "" })).toBe(true)
+    expect(isEmptyTextPart({ type: "text", text: "   " })).toBe(true)
+  })
+
+  it("is false for non-text parts", () => {
+    expect(isEmptyTextPart({ type: "tool-question", toolCallId: "call-1" })).toBe(false)
+    expect(isEmptyTextPart({ type: "step-start" })).toBe(false)
+  })
+})
+
+describe("filterEmptyTextParts", () => {
+  it("drops empty text parts but keeps text with content and tool parts", () => {
+    const messages = [
+      {
+        id: "a1",
+        parts: [
+          { type: "text", text: "" },
+          { type: "tool-question", toolCallId: "call-1", state: "input-available" },
+        ],
+      },
+      { id: "a2", parts: [{ type: "text", text: "Got it" }, { type: "text", text: "  " }] },
+    ]
+    const result = filterEmptyTextParts(messages)
+    expect(result[0].parts.map((part) => part.type)).toEqual(["tool-question"])
+    expect(result[1].parts.map((part) => part.type)).toEqual(["text"])
+  })
+
+  it("returns the messages unchanged when there is nothing to drop", () => {
+    const messages = [
+      { id: "a1", parts: [{ type: "text", text: "hi" }, { type: "tool-users_get", toolCallId: "call-1" }] },
+    ]
+    expect(filterEmptyTextParts(messages)).toEqual(messages)
   })
 })

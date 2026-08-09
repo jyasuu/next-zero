@@ -12,6 +12,7 @@ import { Markdown, CopyButton } from "@/features/chat/components/markdown"
 import { ToolCard } from "@/features/chat/components/tool-card"
 import {
   dedupeToolPartsAcrossMessages,
+  isEmptyTextPart,
   isToolPart,
   parseToolInput,
   toolNameFromPart,
@@ -236,6 +237,7 @@ export function ChatPanel() {
               <div className="group relative max-w-[95%] space-y-3">
                 {message.parts.map((part, index) => {
                   if (part.type === "text") {
+                    if (isEmptyTextPart(part)) return null
                     return (
                       <div key={index} className="relative rounded-2xl bg-muted/60 px-4 py-2.5">
                         <Markdown text={part.text} />

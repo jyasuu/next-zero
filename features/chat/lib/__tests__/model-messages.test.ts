@@ -45,6 +45,24 @@ describe("uiMessagesToModelMessages", () => {
     ])
   })
 
+  it("drops empty text parts from an assistant message", () => {
+    const message: UIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { type: "text", text: "" },
+        { type: "text", text: "   " },
+        { type: "text", text: "Done" },
+      ],
+    }
+    expect(uiMessagesToModelMessages([message])).toEqual([
+      {
+        role: "assistant",
+        content: [{ type: "text", text: "Done" }],
+      },
+    ])
+  })
+
   it("maps an unexecuted tool part to a tool call only", () => {
     const message: UIMessage = {
       id: "a1",

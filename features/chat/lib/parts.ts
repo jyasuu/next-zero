@@ -77,6 +77,21 @@ export function dedupeToolPartsAcrossMessages<T extends { parts: readonly unknow
   return messages.map((message) => ({ ...message, parts: dedupeToolParts(message.parts, seen) }))
 }
 
+export function isEmptyTextPart(part: unknown): boolean {
+  if (typeof part !== "object" || part === null) return false
+  const { type, text } = part as { type?: unknown; text?: unknown }
+  return type === "text" && (typeof text !== "string" || text.trim().length === 0)
+}
+
+export function filterEmptyTextParts<T extends { parts: readonly unknown[] }>(
+  messages: readonly T[]
+): T[] {
+  return messages.map((message) => ({
+    ...message,
+    parts: message.parts.filter((part) => !isEmptyTextPart(part)),
+  }))
+}
+
 export function isOutputAvailable(part: ToolPartLike): boolean {
   return part.state === "output-available"
 }

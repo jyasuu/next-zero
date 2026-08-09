@@ -1,6 +1,7 @@
 import type { UIMessage, ModelMessage, JSONValue } from "ai"
 import {
   dedupeToolParts,
+  isEmptyTextPart,
   isOutputAvailable,
   isOutputError,
   isToolPart,
@@ -34,7 +35,9 @@ export function uiMessagesToModelMessages(messages: UIMessage[]): ModelMessage[]
 
     for (const part of dedupeToolParts(message.parts, seenToolCallIds)) {
       if (part.type === "text") {
-        content.push({ type: "text", text: part.text })
+        if (!isEmptyTextPart(part)) {
+          content.push({ type: "text", text: part.text })
+        }
         continue
       }
       if (!isToolPart(part)) continue
